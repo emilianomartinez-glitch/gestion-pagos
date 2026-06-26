@@ -1,0 +1,2519 @@
+{
+    "nodes": [
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 3
+                    },
+                    "conditions": [
+                        {
+                            "id": "887712be-6e38-443d-b8d0-c54d2012c5ef",
+                            "leftValue": "={{ $input.all().length }}",
+                            "rightValue": 0,
+                            "operator": {
+                                "type": "number",
+                                "operation": "gt"
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.3,
+            "position": [
+                1520,
+                1952
+            ],
+            "id": "4d5b3d0f-d3ef-494f-b8b7-6ce4d4f5d33c",
+            "name": "If"
+        },
+        {
+            "parameters": {
+                "documentId": {
+                    "__rl": true,
+                    "value": "14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734",
+                    "mode": "list",
+                    "cachedResultName": "MZ-FIN-08 - Matriz de solicitudes de pago",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": 1516631558,
+                    "mode": "list",
+                    "cachedResultName": "Roles Portal Pagos",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit#gid=1516631558"
+                },
+                "filtersUI": {
+                    "values": [
+                        {
+                            "lookupColumn": "email",
+                            "lookupValue": "={{ $json.query.email }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.7,
+            "position": [
+                1296,
+                1952
+            ],
+            "id": "9ef2c3bc-3b69-4053-b7b2-73bf177bba82",
+            "name": "Hoja Sheets Roles",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "af48hEP1PbQpWRo9",
+                    "name": "Google Sheets account 3"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "path": "role",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                1072,
+                1952
+            ],
+            "id": "b5995ea3-4df9-44ef-b76f-824fcee24fd1",
+            "name": "Webhook - Role",
+            "webhookId": "99d2d0d6-ba53-431e-aa96-120aef497fc7"
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
+            "position": [
+                1968,
+                1952
+            ],
+            "id": "925f156d-3ca0-4ceb-aa0e-f0e8dca896b4",
+            "name": "Role"
+        },
+        {
+            "parameters": {
+                "documentId": {
+                    "__rl": true,
+                    "value": "14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734",
+                    "mode": "list",
+                    "cachedResultName": "MZ-FIN-08 - Matriz de solicitudes de pago",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": "gid=0",
+                    "mode": "list",
+                    "cachedResultName": "Pagos Operaciones",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit#gid=0"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.7,
+            "position": [
+                1296,
+                2272
+            ],
+            "id": "75096d00-82a6-4a2b-b62a-67d5cdeaec88",
+            "name": "Hoja Sheets Pago Operaciones",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "af48hEP1PbQpWRo9",
+                    "name": "Google Sheets account 3"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "dc19f067-5393-4dce-928f-10bc8675c372",
+                            "name": "_sheet",
+                            "value": "OPS",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "includeOtherFields": true,
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                1520,
+                2272
+            ],
+            "id": "a7a424d5-b4b6-4bee-afe3-c62d82866743",
+            "name": "Edit Fields2"
+        },
+        {
+            "parameters": {
+                "respondWith": "allIncomingItems",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
+            "position": [
+                1968,
+                2272
+            ],
+            "id": "f7b5d8a7-3531-45c2-8386-0d161d662366",
+            "name": "Respond to Webhook"
+        },
+        {
+            "parameters": {
+                "path": "solicitudes",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                1072,
+                2272
+            ],
+            "id": "ece91657-2cd3-41bd-9da4-e1f6497a40cc",
+            "name": "Webhook - GET Solicitudes",
+            "webhookId": "9f6178b6-a1c8-4f55-a544-fe43de8ffd72"
+        },
+        {
+            "parameters": {
+                "jsCode": "const body = $input.first().json.body;\n\nconst subtotal = parseFloat(body.subtotal) || 0;\nconst iva = +(subtotal * 0.16).toFixed(2);\nconst amount = +(subtotal + iva).toFixed(2);\nconst id = body.id || (\"PAY-\" + Date.now().toString(36).toUpperCase());\n\nconst now = new Date().toISOString();\nconst date = now.slice(0, 10);\n\nconst statusHistory = JSON.stringify([\n  {\n    status: \"Autorización\",\n    timestamp: now,\n    changedBy: body.submittedBy || \"\",\n  }\n]);\n\nreturn [{\n  json: {\n    // Campos para Google Sheets (nombres exactos de columna)\n    \"ID\": id,\n    \"Fecha de solicitud\": date,\n    \"OC\": body.poNumber || \"\",\n    \"No. de Proyecto o Departamento para imputar\": body.projectNumber || \"\",\n    \"Beneficiario\": body.beneficiary || \"\",\n    \"Concepto de pago\": body.concept || \"\",\n    \"Subtotal\": subtotal,\n    \"IVA\": iva,\n    \"Monto Solicitado\": amount,\n    \"Divisa\": body.currency || \"MXN\",\n    \"Departamento solicitante\": body.department || \"\",\n    \"Persona Solicitante\": body.submittedBy || \"\",\n    \"Estatus del Pago\": \"Autorización\",\n    \"StatusHistory\": statusHistory,\n    // Campos vacíos para que la fila quede completa\n    \"Listo para pago\": \"\",\n    \"Pago Programado\": \"\",\n    \"Autorizado MAC+Operaciones\": \"\",\n    \"Observaciones de Finanzas\": \"\",\n    \"Tipo de operación\": \"\",\n    \"Estatus OC\": \"\",\n    \"Cliente\": \"\",\n    \"N° de factura\": \"\",\n    \"Monto Pagado\": \"\",\n    \"T/C\": \"\",\n    \"Monto en MXN\": \"\",\n    \"Banco\": \"\",\n    \"Operación\": \"\",\n    \"Modo pago\": \"\",\n    \"Prestación del bien o servicio\": \"\",\n    \"Propuesta\": \"\",\n    \"Tipo de gasto\": \"\",\n    \"Link Factura\": \"\",\n    \"Comprobante de pago\": \"\",\n    // Para la respuesta al frontend\n    _response: {\n      id,\n      poNumber: body.poNumber || \"\",\n      projectNumber: body.projectNumber || \"\",\n      beneficiary: body.beneficiary || \"\",\n      concept: body.concept || \"\",\n      subtotal,\n      iva,\n      amount,\n      currency: body.currency || \"MXN\",\n      department: body.department || \"\",\n      status: \"Autorización\",\n      submittedBy: body.submittedBy || \"\",\n      date,\n      statusHistory: [{ status: \"Autorización\", timestamp: now, changedBy: body.submittedBy || \"\" }],\n    }\n  }\n}];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1296,
+                2496
+            ],
+            "id": "dd8eb418-40ab-4b7a-a11c-222ea180900a",
+            "name": "Preparar fila"
+        },
+        {
+            "parameters": {
+                "jsCode": "const rows = $input.all();\nconst results = [];\n\nfor (const row of rows) {\n  const d = row.json;\n  const id = d[\"ID\"];\n  if (!id) continue;\n\n  let statusHistory = [];\n  try {\n    if (d[\"StatusHistory\"]) {\n      statusHistory = JSON.parse(d[\"StatusHistory\"]);\n    }\n  } catch {}\n\n  results.push({\n    json: {\n      id,\n      poNumber: d[\"OC\"] || \"\",\n      projectNumber: d[\"No. de Proyecto o Departamento para imputar\"] || \"\",\n      beneficiary: d[\"Beneficiario\"] || \"\",\n      concept: d[\"Concepto de pago\"] || \"\",\n      subtotal: parseFloat(d[\"Subtotal\"]) || 0,\n      iva: parseFloat(d[\"IVA\"]) || 0,\n      amount: parseFloat(d[\"Monto Solicitado\"]) || 0,\n      currency: d[\"Divisa\"] || \"MXN\",\n      department: d[\"Departamento solicitante\"] || \"\",\n      status: d[\"Estatus del Pago\"] || \"Draft\",\n      submittedBy: d[\"Persona Solicitante\"] || \"\",\n      date: d[\"Fecha de solicitud\"] || \"\",\n      statusHistory,\n      financeObservations: d[\"Observaciones de Finanzas\"] || undefined,\n      amountPaid: parseFloat(d[\"Monto Pagado\"]) || undefined,\n      exchangeRateUsed: parseFloat(d[\"T/C\"]) || undefined,\n      amountMXN: parseFloat(d[\"Monto en MXN\"]) || undefined,\n      bankName: d[\"Banco\"] || undefined,\n      operationRef: d[\"Operación\"] || undefined,\n      paymentMode: d[\"Modo pago\"] || undefined,\n      invoiceNumber: d[\"N° de factura\"] || undefined,\n      invoiceLink: d[\"Link Factura\"] || undefined,\n      expenseType: d[\"Tipo de gasto\"] || undefined,\n      operationType: d[\"Tipo de operación\"] || undefined,\n      ocStatus: d[\"Estatus OC\"] || undefined,\n      client: d[\"Cliente\"] || undefined,\n      serviceDelivery: d[\"Prestación del bien o servicio\"] || undefined,\n      proposal: d[\"Propuesta\"] || undefined,\n      paymentProof: d[\"Comprobante de pago\"] || undefined,\n    }\n  });\n}\n\nreturn results;"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1744,
+                2272
+            ],
+            "id": "68131e6c-0773-41e8-9e71-f15e62921345",
+            "name": "Traer filas"
+        },
+        {
+            "parameters": {
+                "jsCode": "const prev = $('Preparar fila').first().json._response;\nreturn [{ json: prev }];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1744,
+                2496
+            ],
+            "id": "c4aac1ad-8bc1-45bd-903c-367bcf4b5cd6",
+            "name": "Prparar respuestas"
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
+            "position": [
+                1968,
+                2496
+            ],
+            "id": "7b885ee5-cae5-486f-8d5e-90e6c725519b",
+            "name": "Respond to Webhook1"
+        },
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "solicitudes",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                1072,
+                2496
+            ],
+            "id": "02cf728f-09be-4583-abe8-5e29acaefd37",
+            "name": "Webhook - POST Solicitudes",
+            "webhookId": "5de72c17-a954-4ff8-a01b-57def0039ccb"
+        },
+        {
+            "parameters": {
+                "httpMethod": "PATCH",
+                "path": "solicitudes/status",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                1072,
+                2816
+            ],
+            "id": "30102277-882e-41bb-9692-3635475cddfa",
+            "name": "Webhook - PATCH Status",
+            "webhookId": "2f102075-44db-4ada-bf13-840a2471db79"
+        },
+        {
+            "parameters": {
+                "documentId": {
+                    "__rl": true,
+                    "value": "14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734",
+                    "mode": "list",
+                    "cachedResultName": "MZ-FIN-08 - Matriz de solicitudes de pago",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": "gid=0",
+                    "mode": "list",
+                    "cachedResultName": "Pagos Operaciones",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit#gid=0"
+                },
+                "filtersUI": {
+                    "values": [
+                        {
+                            "lookupColumn": "ID",
+                            "lookupValue": "={{ $json.body.id }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.7,
+            "position": [
+                1296,
+                2816
+            ],
+            "id": "9c171025-4025-4eed-85b9-60e3765fc876",
+            "name": "Get row(s) in sheet",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "af48hEP1PbQpWRo9",
+                    "name": "Google Sheets account 3"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "const body = $('Webhook - PATCH Status').first().json.body;\nconst found = $input.first().json;\n\nif (!found || !found[\"ID\"]) {\n  return [{ json: { error: \"Solicitud no encontrada\", success: false } }];\n}\n\nlet history = [];\ntry { if (found[\"StatusHistory\"]) history = JSON.parse(found[\"StatusHistory\"]); } catch {}\n\nconst entry = {\n  status: body.status,\n  timestamp: body.timestamp || new Date().toISOString(),\n  changedBy: body.changedBy || \"Sistema\",\n};\n\n// Capture specific comment types\nif (body.rejectReason) entry.rejectReason = body.rejectReason;\nif (body.clarificationRequest) entry.clarificationRequest = body.clarificationRequest;\nif (body.clarificationResponse) entry.clarificationResponse = body.clarificationResponse;\nif (body.comment) entry.comment = body.comment;\n\nhistory.push(entry);\n\nconst update = {\n  ID: body.id,\n  \"Estatus del Pago\": body.status,\n  StatusHistory: JSON.stringify(history),\n};\n\n// Handle Finance Observations History separately if sent via status webhook\nif (body.financeObservations || (body.comment && !body.rejectReason && !body.clarificationRequest)) {\n  const newNoteText = body.financeObservations || body.comment;\n  let obsHistory = [];\n  try {\n    if (found[\"Observaciones de Finanzas\"]) {\n      const parsed = JSON.parse(found[\"Observaciones de Finanzas\"]);\n      obsHistory = Array.isArray(parsed) ? parsed : [{ text: found[\"Observaciones de Finanzas\"], timestamp: new Date().toISOString(), user: \"Legacy\" }];\n    }\n  } catch {\n    if (found[\"Observaciones de Finanzas\"]) obsHistory = [{ text: found[\"Observaciones de Finanzas\"], timestamp: new Date().toISOString(), user: \"Legacy\" }];\n  }\n\n  obsHistory.push({\n    text: newNoteText,\n    timestamp: new Date().toISOString(),\n    user: body.changedBy || \"Finanzas\"\n  });\n  update[\"Observaciones de Finanzas\"] = JSON.stringify(obsHistory);\n}\n\n// Map other specific fields\nif (body.rejectReason) update[\"Motivo de Rechazo\"] = body.rejectReason;\nif (body.clarificationRequest) update[\"Solicitud de Aclaración\"] = body.clarificationRequest;\nif (body.clarificationResponse) update[\"Respuesta a Aclaración\"] = body.clarificationResponse;\n\nreturn [\n  { json: update },\n  {\n    json: {\n      isLog: true,\n      \"ID Solicitudes\": body.id,\n      \"Evento\": body.event || \"STATUS_CHANGE\",\n      \"Timestamp\": body.timestamp || new Date().toISOString(),\n      \"Estado resultante\": body.status,\n      \"Usuario\": body.changedBy || \"\",\n      \"Comentarios\": body.rejectReason || body.clarificationRequest || body.clarificationResponse || body.comment || \"\"\n    }\n  }\n];\n"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1520,
+                2816
+            ],
+            "id": "9bd16f60-7b3a-4fbf-8697-b6d95972d3ec",
+            "name": "Code in JavaScript"
+        },
+        {
+            "parameters": {
+                "operation": "appendOrUpdate",
+                "documentId": {
+                    "__rl": true,
+                    "value": "14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734",
+                    "mode": "list",
+                    "cachedResultName": "MZ-FIN-08 - Matriz de solicitudes de pago",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": "gid=0",
+                    "mode": "list",
+                    "cachedResultName": "Pagos Operaciones",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit#gid=0"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "ID": "={{ $json.ID }}",
+                        "Estatus del Pago": "={{ $json['Estatus del Pago'] }}",
+                        "StatusHistory": "={{ $json.StatusHistory }}",
+                        "Motivo de Rechazo": "={{ $json['Motivo de Rechazo'] }}",
+                        "Solicitud de Aclaración": "={{ $json['Solicitud de Aclaración'] }}",
+                        "Observaciones de Finanzas": "={{ $json['Observaciones de Finanzas'] }}"
+                    },
+                    "matchingColumns": [
+                        "ID"
+                    ],
+                    "schema": [
+                        {
+                            "id": "ID",
+                            "displayName": "ID",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Fecha de solicitud",
+                            "displayName": "Fecha de solicitud",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "StatusHistory",
+                            "displayName": "StatusHistory",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Listo para pago",
+                            "displayName": "Listo para pago",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Pago Programado",
+                            "displayName": "Pago Programado",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "OC",
+                            "displayName": "OC",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "No. de Proyecto o Departamento para imputar",
+                            "displayName": "No. de Proyecto o Departamento para imputar",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Beneficiario",
+                            "displayName": "Beneficiario",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Concepto de pago",
+                            "displayName": "Concepto de pago",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Subtotal",
+                            "displayName": "Subtotal",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "IVA",
+                            "displayName": "IVA",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Monto Solicitado",
+                            "displayName": "Monto Solicitado",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Divisa",
+                            "displayName": "Divisa",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Departamento solicitante",
+                            "displayName": "Departamento solicitante",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Persona Solicitante",
+                            "displayName": "Persona Solicitante",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Autorizado MAC+Operaciones",
+                            "displayName": "Autorizado MAC+Operaciones",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Motivo de Rechazo",
+                            "displayName": "Motivo de Rechazo",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Solicitud de Aclaración",
+                            "displayName": "Solicitud de Aclaración",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Respuesta a la aclaración",
+                            "displayName": "Respuesta a la aclaración",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Observaciones de Finanzas",
+                            "displayName": "Observaciones de Finanzas",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Estatus del Pago",
+                            "displayName": "Estatus del Pago",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Tipo de operación",
+                            "displayName": "Tipo de operación",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Estatus OC",
+                            "displayName": "Estatus OC",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Cliente",
+                            "displayName": "Cliente",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "N° de factura",
+                            "displayName": "N° de factura",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Monto Pagado",
+                            "displayName": "Monto Pagado",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "T/C",
+                            "displayName": "T/C",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Monto en MXN",
+                            "displayName": "Monto en MXN",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Banco",
+                            "displayName": "Banco",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Operación",
+                            "displayName": "Operación",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Modo pago",
+                            "displayName": "Modo pago",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Prestación del bien o servicio",
+                            "displayName": "Prestación del bien o servicio",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Propuesta",
+                            "displayName": "Propuesta",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Tipo de gasto",
+                            "displayName": "Tipo de gasto",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Link Factura",
+                            "displayName": "Link Factura",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Comprobante de pago",
+                            "displayName": "Comprobante de pago",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "_response",
+                            "displayName": "_response",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.7,
+            "position": [
+                1968,
+                2720
+            ],
+            "id": "444ddc90-cd59-441e-804b-d787e4bd6228",
+            "name": "Append or update row in sheet",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "af48hEP1PbQpWRo9",
+                    "name": "Google Sheets account 3"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Use the correct trigger name: Webhook - PATCH Status\nconst body = $('Webhook - PATCH Status').first().json.body;\n\nreturn [{ \n  json: { \n    success: true, \n    id: body.id, \n    status: body.status \n  } \n}];\n"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                2192,
+                2720
+            ],
+            "id": "29d30f61-7334-428d-89e5-711fa6e624de",
+            "name": "Code in JavaScript1"
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
+            "position": [
+                2416,
+                2720
+            ],
+            "id": "f344b038-5aa0-4a48-8008-ba8918be9cae",
+            "name": "Respond to Webhook2"
+        },
+        {
+            "parameters": {
+                "httpMethod": "PATCH",
+                "path": "solicitudes/finanzas",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                1072,
+                3232
+            ],
+            "id": "816f8d9f-6f68-4e50-9815-903aa6b6e60d",
+            "name": "Webhook - PATCH Finanzas",
+            "webhookId": "2f102075-44db-4ada-bf13-840a2471db79"
+        },
+        {
+            "parameters": {
+                "jsCode": "const body = $input.first().json.body;\nconst found = $input.first().json;\n\nconst fieldMap = {\n  amountPaid: \"Monto Pagado\",\n  exchangeRate: \"T/C\",\n  amountMXN: \"Monto en MXN\",\n  bankName: \"Banco\",\n  operationRef: \"Operación\",\n  paymentMode: \"Modo pago\",\n  invoiceNumber: \"N° de factura\",\n  invoiceLink: \"Link Factura\",\n  expenseType: \"Tipo de gasto\",\n  operationType: \"Tipo de operación\",\n  ocStatus: \"Estatus OC\",\n  client: \"Cliente\",\n  serviceDelivery: \"Prestación del bien o servicio\",\n  proposal: \"Propuesta\",\n  paymentProof: \"Comprobante de pago\",\n};\n\nconst update = { \"ID\": body.id };\nfor (const [key, col] of Object.entries(fieldMap)) {\n  if (body[key] !== undefined && body[key] !== null) update[col] = body[key];\n}\n\n// Handle Finance Observations History\nlet obsHistory = [];\ntry {\n  if (found[\"Observaciones de Finanzas\"]) {\n    const parsed = JSON.parse(found[\"Observaciones de Finanzas\"]);\n    obsHistory = Array.isArray(parsed) ? parsed : [{ text: found[\"Observaciones de Finanzas\"], timestamp: new Date().toISOString(), user: \"Legacy\" }];\n  }\n} catch {\n  if (found[\"Observaciones de Finanzas\"]) obsHistory = [{ text: found[\"Observaciones de Finanzas\"], timestamp: new Date().toISOString(), user: \"Legacy\" }];\n}\n\nif (body.financeObservations) {\n  obsHistory.push({\n    text: body.financeObservations,\n    timestamp: new Date().toISOString(),\n    user: body.changedBy || \"Finanzas\"\n  });\n  update[\"Observaciones de Finanzas\"] = JSON.stringify(obsHistory);\n}\n\n// Add status if this update also changes status (e.g. to \"Paid\")\nif (body.status) update[\"Estatus del Pago\"] = body.status;\n\nreturn [\n  { json: update },\n  {\n    json: {\n      isLog: true,\n      \"ID Solicitudes\": body.id,\n      \"Evento\": body.event || \"FINANCE_UPDATE\",\n      \"Timestamp\": body.timestamp || new Date().toISOString(),\n      \"Estado resultante\": body.status || \"N/A\",\n      \"Usuario\": body.changedBy || \"Finanzas\",\n      \"Comentarios\": body.financeObservations || \"Actualización de datos financieros\"\n    }\n  }\n];\n"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1296,
+                3232
+            ],
+            "id": "290e9854-8ef7-4d61-93ec-0cdbfeea872e",
+            "name": "Code in JavaScript2"
+        },
+        {
+            "parameters": {
+                "operation": "appendOrUpdate",
+                "documentId": {
+                    "__rl": true,
+                    "value": "14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734",
+                    "mode": "list",
+                    "cachedResultName": "MZ-FIN-08 - Matriz de solicitudes de pago",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": "gid=0",
+                    "mode": "list",
+                    "cachedResultName": "Pagos Operaciones",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit#gid=0"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "ID": "={{ $json.ID }}",
+                        "Monto Pagado": "={{ $json['Monto Pagado'] }}",
+                        "T/C": "={{ $json['T/C'] }}",
+                        "Monto en MXN": "={{ $json['Monto en MXN'] }}",
+                        "Banco": "={{ $json['Banco'] }}",
+                        "Operación": "={{ $json['Operación'] }}",
+                        "Modo pago": "={{ $json['Modo pago'] }}",
+                        "N° de factura": "={{ $json['N° de factura'] }}",
+                        "Link Factura": "={{ $json['Link Factura'] }}",
+                        "Tipo de gasto": "={{ $json['Tipo de gasto'] }}",
+                        "Tipo de operación": "={{ $json['Tipo de operación'] }}",
+                        "Estatus OC": "={{ $json['Estatus OC'] }}",
+                        "Cliente": "={{ $json['Cliente'] }}",
+                        "Prestación del bien o servicio": "={{ $json['Prestación del bien o servicio'] }}",
+                        "Propuesta": "={{ $json['Propuesta'] }}",
+                        "Comprobante de pago": "={{ $json['Comprobante de pago'] }}",
+                        "Observaciones de Finanzas": "={{ $json['Observaciones de Finanzas'] }}",
+                        "Estatus del Pago": "={{ $json['Estatus del Pago'] }}"
+                    },
+                    "matchingColumns": [
+                        "ID"
+                    ],
+                    "schema": [
+                        {
+                            "id": "ID",
+                            "displayName": "ID",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Fecha de solicitud",
+                            "displayName": "Fecha de solicitud",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "StatusHistory",
+                            "displayName": "StatusHistory",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Listo para pago",
+                            "displayName": "Listo para pago",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Pago Programado",
+                            "displayName": "Pago Programado",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "OC",
+                            "displayName": "OC",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "No. de Proyecto o Departamento para imputar",
+                            "displayName": "No. de Proyecto o Departamento para imputar",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Beneficiario",
+                            "displayName": "Beneficiario",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Concepto de pago",
+                            "displayName": "Concepto de pago",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Subtotal",
+                            "displayName": "Subtotal",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "IVA",
+                            "displayName": "IVA",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Monto Solicitado",
+                            "displayName": "Monto Solicitado",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Divisa",
+                            "displayName": "Divisa",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Departamento solicitante",
+                            "displayName": "Departamento solicitante",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Persona Solicitante",
+                            "displayName": "Persona Solicitante",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Autorizado MAC+Operaciones",
+                            "displayName": "Autorizado MAC+Operaciones",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Motivo de Rechazo",
+                            "displayName": "Motivo de Rechazo",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Solicitud de Aclaración",
+                            "displayName": "Solicitud de Aclaración",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Respuesta a la aclaración",
+                            "displayName": "Respuesta a la aclaración",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Observaciones de Finanzas",
+                            "displayName": "Observaciones de Finanzas",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Estatus del Pago",
+                            "displayName": "Estatus del Pago",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Tipo de operación",
+                            "displayName": "Tipo de operación",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Estatus OC",
+                            "displayName": "Estatus OC",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Cliente",
+                            "displayName": "Cliente",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "N° de factura",
+                            "displayName": "N° de factura",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Monto Pagado",
+                            "displayName": "Monto Pagado",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "T/C",
+                            "displayName": "T/C",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Monto en MXN",
+                            "displayName": "Monto en MXN",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Banco",
+                            "displayName": "Banco",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Operación",
+                            "displayName": "Operación",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Modo pago",
+                            "displayName": "Modo pago",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Prestación del bien o servicio",
+                            "displayName": "Prestación del bien o servicio",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Propuesta",
+                            "displayName": "Propuesta",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Tipo de gasto",
+                            "displayName": "Tipo de gasto",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Link Factura",
+                            "displayName": "Link Factura",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Comprobante de pago",
+                            "displayName": "Comprobante de pago",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "_response",
+                            "displayName": "_response",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.7,
+            "position": [
+                1744,
+                3328
+            ],
+            "id": "1b8adcf3-626e-4d88-b128-51cbfb695925",
+            "name": "Append or update row in sheet1",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "af48hEP1PbQpWRo9",
+                    "name": "Google Sheets account 3"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Get the ID directly from the webhook trigger for 100% reliability\nconst body = $('Webhook - PATCH Finanzas').first().json.body;\n\nreturn [{ \n  json: { \n    success: true, \n    id: body.id \n  } \n}];\n"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1968,
+                3136
+            ],
+            "id": "e29ef6b9-19f5-4ebc-a441-ed21c702a8a4",
+            "name": "Code in JavaScript3"
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
+            "position": [
+                2192,
+                3136
+            ],
+            "id": "7fcb9bb1-969b-4a8a-99c8-b89d213db18a",
+            "name": "Respond to Webhook3"
+        },
+        {
+            "parameters": {
+                "path": "tipo-cambio",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                1072,
+                3552
+            ],
+            "id": "593dda71-4e0b-4a0f-ba91-deb176b26db0",
+            "name": "Webhook - Get Tipo de Cambio",
+            "webhookId": "7843ee8b-28ea-4852-ab07-1093b0469054"
+        },
+        {
+            "parameters": {
+                "documentId": {
+                    "__rl": true,
+                    "value": "14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734",
+                    "mode": "list",
+                    "cachedResultName": "MZ-FIN-08 - Matriz de solicitudes de pago",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": 908320927,
+                    "mode": "list",
+                    "cachedResultName": "Banxico",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit#gid=908320927"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.7,
+            "position": [
+                1296,
+                3552
+            ],
+            "id": "59154d67-67e7-450c-a086-fc9e2af3c152",
+            "name": "Get row(s) in sheet1",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "af48hEP1PbQpWRo9",
+                    "name": "Google Sheets account 3"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "const rows = $input.all();\nconst rates = [];\n\n// Helper to convert D/M/YYYY into a sortable number\nfunction getTimestamp(dateStr) {\n  const parts = dateStr.includes('/') ? dateStr.split('/') : dateStr.split('-');\n  if (parts.length === 3) {\n    const d = dateStr.includes('/') \n      ? new Date(parts[2], parts[1] - 1, parts[0]) // D/M/YYYY\n      : new Date(parts[0], parts[1] - 1, parts[2]); // YYYY-MM-DD\n    return d.getTime();\n  }\n  return new Date(dateStr).getTime();\n}\n\nfor (const row of rows) {\n  const d = row.json;\n  const date = d[\"Fecha\"] || d[\"fecha\"] || \"\";\n  const rawRate = d[\"Determinación\"] || d[\"Determinacion\"] || d[\"determinación\"] || \"0\";\n  const rate = parseFloat(String(rawRate).replace(',', '.'));\n\n  if (date && rate > 0) {\n    rates.push({ \n      date, \n      rate, \n      timestamp: getTimestamp(date) \n    });\n  }\n}\n\n// 1. Sort by real timestamp (Descending)\nrates.sort((a, b) => b.timestamp - a.timestamp);\n\n// 2. Take top 30 (most recent)\nconst last30 = rates.slice(0, 30);\n\n// 3. Reverse back to Ascending for the chart display\nlast30.reverse();\n\nreturn last30.map(r => ({ \n  json: { date: r.date, rate: r.rate } \n}));\n"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1520,
+                3552
+            ],
+            "id": "9801050e-5b29-4df5-be79-f8913389e432",
+            "name": "Code in JavaScript4"
+        },
+        {
+            "parameters": {
+                "respondWith": "allIncomingItems",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
+            "position": [
+                1744,
+                3552
+            ],
+            "id": "779d5cf8-3c31-401f-9a96-6aa4187d2e5e",
+            "name": "Respond to Webhook4"
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "c45a2cbf-b70b-488d-8f68-50471235b21a",
+                            "name": "role",
+                            "value": "={{ $('Hoja Sheets Roles').item.json.role }}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                1744,
+                1856
+            ],
+            "id": "03f8f4d7-c0b8-422f-9bac-761c9a1d8bd8",
+            "name": "Con Rol"
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "b8604d87-ed37-49ae-83d5-90a9efdda273",
+                            "name": "role",
+                            "value": "solicitante",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                1744,
+                2048
+            ],
+            "id": "90df2a78-3249-4573-bfd3-d06ce3eb41bd",
+            "name": "Solicitante"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 3
+                    },
+                    "conditions": [
+                        {
+                            "id": "3a5d0fc5-3292-4598-8385-c6f3e1373dea",
+                            "leftValue": "={{ $json.isLog }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "boolean",
+                                "operation": "true",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.3,
+            "position": [
+                1744,
+                2816
+            ],
+            "id": "b5506908-4e94-4dd9-81c7-c7cada927642",
+            "name": "If1"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 3
+                    },
+                    "conditions": [
+                        {
+                            "id": "3a5d0fc5-3292-4598-8385-c6f3e1373dea",
+                            "leftValue": "={{ $json.isLog }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "boolean",
+                                "operation": "true",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.3,
+            "position": [
+                1520,
+                3232
+            ],
+            "id": "2a861866-2a3f-4b61-ab2b-784bd29cd21f",
+            "name": "If2"
+        },
+        {
+            "parameters": {
+                "operation": "append",
+                "documentId": {
+                    "__rl": true,
+                    "value": "14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734",
+                    "mode": "list",
+                    "cachedResultName": "MZ-FIN-08 - Matriz de solicitudes de pago",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": 1576275149,
+                    "mode": "list",
+                    "cachedResultName": "Historial",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit#gid=1576275149"
+                },
+                "columns": {
+                    "mappingMode": "autoMapInputData",
+                    "value": {},
+                    "matchingColumns": [],
+                    "schema": [
+                        {
+                            "id": "ID Solicitudes",
+                            "displayName": "ID Solicitudes",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Timestamp",
+                            "displayName": "Timestamp",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Evento",
+                            "displayName": "Evento",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Estado resultante",
+                            "displayName": "Estado resultante",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Usuario",
+                            "displayName": "Usuario",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Comentarios",
+                            "displayName": "Comentarios",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "isLog",
+                            "displayName": "isLog",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.7,
+            "position": [
+                1744,
+                3136
+            ],
+            "id": "be394f24-0c00-4b60-98b1-ffd7ac55dc44",
+            "name": "Append row in sheet1",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "af48hEP1PbQpWRo9",
+                    "name": "Google Sheets account 3"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "append",
+                "documentId": {
+                    "__rl": true,
+                    "value": "14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734",
+                    "mode": "list",
+                    "cachedResultName": "MZ-FIN-08 - Matriz de solicitudes de pago",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": 1576275149,
+                    "mode": "list",
+                    "cachedResultName": "Historial",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit#gid=1576275149"
+                },
+                "columns": {
+                    "mappingMode": "autoMapInputData",
+                    "value": {},
+                    "matchingColumns": [],
+                    "schema": [
+                        {
+                            "id": "ID Solicitudes",
+                            "displayName": "ID Solicitudes",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Timestamp",
+                            "displayName": "Timestamp",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Evento",
+                            "displayName": "Evento",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Estado resultante",
+                            "displayName": "Estado resultante",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Usuario",
+                            "displayName": "Usuario",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Comentarios",
+                            "displayName": "Comentarios",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "isLog",
+                            "displayName": "isLog",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.7,
+            "position": [
+                1968,
+                2912
+            ],
+            "id": "2761f550-66c5-426f-9f98-6bca4f4d6700",
+            "name": "Append row in sheet",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "af48hEP1PbQpWRo9",
+                    "name": "Google Sheets account 3"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "appendOrUpdate",
+                "documentId": {
+                    "__rl": true,
+                    "value": "14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734",
+                    "mode": "list",
+                    "cachedResultName": "MZ-FIN-08 - Matriz de solicitudes de pago",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": "gid=0",
+                    "mode": "list",
+                    "cachedResultName": "Pagos Operaciones",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit#gid=0"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "ID": "={{ $json.ID }}",
+                        "Fecha de solicitud": "={{ $json['Fecha de solicitud'] }}",
+                        "OC": "={{ $json.OC }}",
+                        "No. de Proyecto o Departamento para imputar": "={{ $json['No. de Proyecto o Departamento para imputar'] }}",
+                        "Beneficiario": "={{ $json.Beneficiario }}",
+                        "Concepto de pago": "={{ $json['Concepto de pago'] }}",
+                        "Subtotal": "={{ $json.Subtotal }}",
+                        "IVA": "={{ $json.IVA }}",
+                        "Monto Solicitado": "={{ $json['Monto Solicitado'] }}",
+                        "Divisa": "={{ $json.Divisa }}",
+                        "Departamento solicitante": "={{ $json['Departamento solicitante'] }}",
+                        "Persona Solicitante": "={{ $json['Persona Solicitante'] }}",
+                        "StatusHistory": "={{ $json.StatusHistory }}",
+                        "Listo para pago": "={{ $json['Listo para pago'] }}",
+                        "Pago Programado": "={{ $json['Pago Programado'] }}",
+                        "Autorizado MAC+Operaciones": "={{ $json['Autorizado MAC+Operaciones'] }}",
+                        "Observaciones de Finanzas": "={{ $json['Observaciones de Finanzas'] }}",
+                        "Estatus OC": "={{ $json['Estatus OC'] }}",
+                        "Tipo de operación": "={{ $json['Tipo de operación'] }}",
+                        "Estatus del Pago": "={{ $json['Estatus del Pago'] }}",
+                        "Cliente": "={{ $json.Cliente }}",
+                        "N° de factura": "={{ $json['N° de factura'] }}",
+                        "Monto Pagado": "={{ $json['Monto Pagado'] }}",
+                        "T/C": "={{ $json['T/C'] }}",
+                        "Monto en MXN": "={{ $json['Monto en MXN'] }}",
+                        "Banco": "={{ $json.Banco }}",
+                        "Operación": "={{ $json['Operación'] }}",
+                        "Modo pago": "={{ $json['Modo pago'] }}",
+                        "Prestación del bien o servicio": "={{ $json['Prestación del bien o servicio'] }}",
+                        "Propuesta": "={{ $json.Propuesta }}",
+                        "Tipo de gasto": "={{ $json['Tipo de gasto'] }}",
+                        "Link Factura": "={{ $json['Link Factura'] }}",
+                        "Comprobante de pago": "={{ $json['Comprobante de pago'] }}",
+                        "_response": "={{ $json._response }}"
+                    },
+                    "matchingColumns": [
+                        "ID"
+                    ],
+                    "schema": [
+                        {
+                            "id": "ID",
+                            "displayName": "ID",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Fecha de solicitud",
+                            "displayName": "Fecha de solicitud",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "StatusHistory",
+                            "displayName": "StatusHistory",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Listo para pago",
+                            "displayName": "Listo para pago",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Pago Programado",
+                            "displayName": "Pago Programado",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "OC",
+                            "displayName": "OC",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "No. de Proyecto o Departamento para imputar",
+                            "displayName": "No. de Proyecto o Departamento para imputar",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Beneficiario",
+                            "displayName": "Beneficiario",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Concepto de pago",
+                            "displayName": "Concepto de pago",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Subtotal",
+                            "displayName": "Subtotal",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "IVA",
+                            "displayName": "IVA",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Monto Solicitado",
+                            "displayName": "Monto Solicitado",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Divisa",
+                            "displayName": "Divisa",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Departamento solicitante",
+                            "displayName": "Departamento solicitante",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Persona Solicitante",
+                            "displayName": "Persona Solicitante",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Autorizado MAC+Operaciones",
+                            "displayName": "Autorizado MAC+Operaciones",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Motivo de Rechazo",
+                            "displayName": "Motivo de Rechazo",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Solicitud de Aclaración",
+                            "displayName": "Solicitud de Aclaración",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Respuesta a la aclaración",
+                            "displayName": "Respuesta a la aclaración",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Observaciones de Finanzas",
+                            "displayName": "Observaciones de Finanzas",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Estatus del Pago",
+                            "displayName": "Estatus del Pago",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Tipo de operación",
+                            "displayName": "Tipo de operación",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Estatus OC",
+                            "displayName": "Estatus OC",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Cliente",
+                            "displayName": "Cliente",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "N° de factura",
+                            "displayName": "N° de factura",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Monto Pagado",
+                            "displayName": "Monto Pagado",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "T/C",
+                            "displayName": "T/C",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Monto en MXN",
+                            "displayName": "Monto en MXN",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Banco",
+                            "displayName": "Banco",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Operación",
+                            "displayName": "Operación",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Modo pago",
+                            "displayName": "Modo pago",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Prestación del bien o servicio",
+                            "displayName": "Prestación del bien o servicio",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Propuesta",
+                            "displayName": "Propuesta",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Tipo de gasto",
+                            "displayName": "Tipo de gasto",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Link Factura",
+                            "displayName": "Link Factura",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "Comprobante de pago",
+                            "displayName": "Comprobante de pago",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        },
+                        {
+                            "id": "_response",
+                            "displayName": "_response",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true,
+                            "removed": false
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.7,
+            "position": [
+                1520,
+                2496
+            ],
+            "id": "0c4a6108-c202-46d8-b6c6-0e98b13bae3f",
+            "name": "Actualizar solicitudes",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "af48hEP1PbQpWRo9",
+                    "name": "Google Sheets account 3"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "If": {
+            "main": [
+                [
+                    {
+                        "node": "Con Rol",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Solicitante",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Hoja Sheets Roles": {
+            "main": [
+                [
+                    {
+                        "node": "If",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Webhook - Role": {
+            "main": [
+                [
+                    {
+                        "node": "Hoja Sheets Roles",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Hoja Sheets Pago Operaciones": {
+            "main": [
+                [
+                    {
+                        "node": "Edit Fields2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Edit Fields2": {
+            "main": [
+                [
+                    {
+                        "node": "Traer filas",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Webhook - GET Solicitudes": {
+            "main": [
+                [
+                    {
+                        "node": "Hoja Sheets Pago Operaciones",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Preparar fila": {
+            "main": [
+                [
+                    {
+                        "node": "Actualizar solicitudes",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Traer filas": {
+            "main": [
+                [
+                    {
+                        "node": "Respond to Webhook",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Prparar respuestas": {
+            "main": [
+                [
+                    {
+                        "node": "Respond to Webhook1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Webhook - POST Solicitudes": {
+            "main": [
+                [
+                    {
+                        "node": "Preparar fila",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Webhook - PATCH Status": {
+            "main": [
+                [
+                    {
+                        "node": "Get row(s) in sheet",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get row(s) in sheet": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript": {
+            "main": [
+                [
+                    {
+                        "node": "If1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Append or update row in sheet": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript1": {
+            "main": [
+                [
+                    {
+                        "node": "Respond to Webhook2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Webhook - PATCH Finanzas": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript2": {
+            "main": [
+                [
+                    {
+                        "node": "If2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript3": {
+            "main": [
+                [
+                    {
+                        "node": "Respond to Webhook3",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Webhook - Get Tipo de Cambio": {
+            "main": [
+                [
+                    {
+                        "node": "Get row(s) in sheet1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get row(s) in sheet1": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript4",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript4": {
+            "main": [
+                [
+                    {
+                        "node": "Respond to Webhook4",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Con Rol": {
+            "main": [
+                [
+                    {
+                        "node": "Role",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Solicitante": {
+            "main": [
+                [
+                    {
+                        "node": "Role",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If1": {
+            "main": [
+                [
+                    {
+                        "node": "Append row in sheet",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Append or update row in sheet",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If2": {
+            "main": [
+                [
+                    {
+                        "node": "Append row in sheet1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Append or update row in sheet1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Append row in sheet1": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript3",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Actualizar solicitudes": {
+            "main": [
+                [
+                    {
+                        "node": "Prparar respuestas",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "pinData": {
+        "Webhook - POST Solicitudes": [
+            {
+                "headers": {
+                    "host": "egenlight.app.n8n.cloud",
+                    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                    "content-length": "297",
+                    "accept": "*/*",
+                    "accept-encoding": "gzip, br",
+                    "accept-language": "es-ES,es;q=0.9",
+                    "cdn-loop": "cloudflare; loops=1; subreqs=1",
+                    "cf-connecting-ip": "2806:2f0:a060:fce1:e1bc:36a8:9b47:741f",
+                    "cf-ew-via": "15",
+                    "cf-ipcountry": "MX",
+                    "cf-ray": "9f10d14b9934f0b2-DFW",
+                    "cf-visitor": "{\"scheme\":\"https\"}",
+                    "cf-worker": "n8n.cloud",
+                    "content-type": "application/json",
+                    "origin": "http://localhost:5173",
+                    "priority": "u=1, i",
+                    "referer": "http://localhost:5173/",
+                    "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+                    "sec-ch-ua-mobile": "?0",
+                    "sec-ch-ua-platform": "\"Windows\"",
+                    "sec-fetch-dest": "empty",
+                    "sec-fetch-mode": "cors",
+                    "sec-fetch-site": "cross-site",
+                    "x-forwarded-for": "2806:2f0:a060:fce1:e1bc:36a8:9b47:741f, 172.70.94.54",
+                    "x-forwarded-host": "egenlight.app.n8n.cloud",
+                    "x-forwarded-port": "443",
+                    "x-forwarded-proto": "https",
+                    "x-forwarded-server": "traefik-prod-users-gwc-105-59f487f4c8-74jkt",
+                    "x-is-trusted": "yes",
+                    "x-real-ip": "2806:2f0:a060:fce1:e1bc:36a8:9b47:741f"
+                },
+                "params": {},
+                "query": {},
+                "body": {
+                    "id": "PAY-309",
+                    "poNumber": "oc-9435",
+                    "projectNumber": "proyecto prueba otra",
+                    "beneficiary": "edmiaidsa",
+                    "concept": "sadfsdaf",
+                    "subtotal": 435345,
+                    "iva": 69655.2,
+                    "amount": 505000.2,
+                    "currency": "MXN",
+                    "department": "tech",
+                    "status": "Autorización",
+                    "submittedBy": "Emiliano Martínez Tejeda",
+                    "date": "2026-04-23"
+                },
+                "webhookUrl": "https://egenlight.app.n8n.cloud/webhook/solicitudes",
+                "executionMode": "production"
+            }
+        ],
+        "Webhook - PATCH Status": [
+            {
+                "headers": {
+                    "host": "egenlight.app.n8n.cloud",
+                    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+                    "content-length": "118",
+                    "accept": "*/*",
+                    "accept-encoding": "gzip, br",
+                    "accept-language": "es-ES,es;q=0.9",
+                    "cdn-loop": "cloudflare; loops=1; subreqs=1",
+                    "cf-connecting-ip": "2806:2f0:a060:fce1:e1bc:36a8:9b47:741f",
+                    "cf-ew-via": "15",
+                    "cf-ipcountry": "MX",
+                    "cf-ray": "9f109c54d83d01f2-DFW",
+                    "cf-visitor": "{\"scheme\":\"https\"}",
+                    "cf-worker": "n8n.cloud",
+                    "content-type": "application/json",
+                    "origin": "http://localhost:5173",
+                    "priority": "u=1, i",
+                    "referer": "http://localhost:5173/",
+                    "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+                    "sec-ch-ua-mobile": "?0",
+                    "sec-ch-ua-platform": "\"Windows\"",
+                    "sec-fetch-dest": "empty",
+                    "sec-fetch-mode": "cors",
+                    "sec-fetch-site": "cross-site",
+                    "x-forwarded-for": "2806:2f0:a060:fce1:e1bc:36a8:9b47:741f, 162.159.104.199",
+                    "x-forwarded-host": "egenlight.app.n8n.cloud",
+                    "x-forwarded-port": "443",
+                    "x-forwarded-proto": "https",
+                    "x-forwarded-server": "traefik-prod-users-gwc-105-59f487f4c8-984m7",
+                    "x-is-trusted": "yes",
+                    "x-real-ip": "2806:2f0:a060:fce1:e1bc:36a8:9b47:741f"
+                },
+                "params": {},
+                "query": {},
+                "body": {
+                    "id": "PAY-MOBTPCN4",
+                    "status": "Rejected",
+                    "changedBy": "emiliano.martinez@enlight.mx",
+                    "comment": "prueba rechazo sheets"
+                },
+                "webhookUrl": "https://egenlight.app.n8n.cloud/webhook/solicitudes/status",
+                "executionMode": "production"
+            }
+        ]
+    },
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "d07ceca5e978fedf0de8319073f060d445fc5f9ac86873adfc6d77f9052a35c4"
+    }
+}

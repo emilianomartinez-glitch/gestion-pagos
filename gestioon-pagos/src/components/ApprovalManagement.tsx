@@ -1,4 +1,11 @@
 import React, { useState } from "react";
+import {
+  CheckCircle2,
+  HelpCircle,
+  XCircle,
+  Loader2,
+  X
+} from "lucide-react";
 import StatusPill from "./StatusPill";
 import RejectModal from "./RejectModal";
 import { STATUS } from "../data/mockData";
@@ -6,7 +13,7 @@ import type { Request } from "../data/mockData";
 
 interface Props {
   requests: Request[];
-  onUpdateRequest: (id: string, status: string, comment?: string) => void;
+  onUpdateRequest: (id: string, status: string, extra?: any) => void;
 }
 
 const ApprovalManagement: React.FC<Props> = ({ requests, onUpdateRequest }) => {
@@ -14,28 +21,30 @@ const ApprovalManagement: React.FC<Props> = ({ requests, onUpdateRequest }) => {
   const [rejectTarget, setRejectTarget] = useState<string | null>(null);
   const [clarifyTarget, setClarifyTarget] = useState<string | null>(null);
 
+  // Bulk Selection States
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isBulkOperating, setIsBulkOperating] = useState(false);
+  const [bulkClarifyTarget, setBulkClarifyTarget] = useState<string[] | null>(null);
+  const [bulkRejectTarget, setBulkRejectTarget] = useState<string[] | null>(null);
+
   const pendingRequests = requests.filter(
-    (r) => r.status === STATUS.AUTORIZACION || r.status === STATUS.PENDING_FIN
+    (r) => r.status === STATUS.AUTORIZACION
   );
 
   const selected = pendingRequests.find((r) => r.id === selectedId) ?? null;
 
   const canAct = selected
-    ? selected.status === "Autorización" || selected.status === "Pending Fin"
+    ? selected.status === STATUS.AUTORIZACION
     : false;
 
   const handleApprove = () => {
     if (!selected) return;
-    const next =
-      selected.status === STATUS.AUTORIZACION
-        ? STATUS.PENDING_FIN
-        : STATUS.APPROVED;
-    onUpdateRequest(selected.id, next);
+    onUpdateRequest(selected.id, STATUS.PENDING_FIN);
     setSelectedId(null);
   };
 
   const handleReject = (id: string, comment: string) => {
-    onUpdateRequest(id, "Rejected", comment);
+    onUpdateRequest(id, STATUS.REJECTED, { rejectReason: comment });
     setRejectTarget(null);
     setSelectedId(null);
   };
@@ -46,27 +55,150 @@ const ApprovalManagement: React.FC<Props> = ({ requests, onUpdateRequest }) => {
   };
 
   const handleClarifyConfirm = (id: string, comment: string) => {
-    onUpdateRequest(id, STATUS.DRAFT, comment);
+    onUpdateRequest(id, STATUS.DRAFT, { clarificationRequest: comment });
     setClarifyTarget(null);
     setSelectedId(null);
+  };
+
+  // Bulk Action Handlers
+  const allSelected = pendingRequests.length > 0 && selectedIds.length === pendingRequests.length;
+
+  const handleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(pendingRequests.map(r => r.id));
+    }
+  };
+
+  const handleSelectRow = (e: React.ChangeEvent<HTMLInputElement>, id: string) => {
+    e.stopPropagation();
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkApprove = async () => {
+    if (selectedIds.length === 0) return;
+    if (!window.confirm(`¿Aprobar las ${selectedIds.length} solicitudes seleccionadas?`)) return;
+    setIsBulkOperating(true);
+    try {
+      for (const id of selectedIds) {
+        await onUpdateRequest(id, STATUS.PENDING_FIN);
+      }
+      setSelectedIds([]);
+      setSelectedId(null);
+    } catch (error) {
+      console.error("Error bulk approving:", error);
+    } finally {
+      setIsBulkOperating(false);
+    }
+  };
+
+  const handleBulkClarificationConfirm = async (_labelId: string, comment: string) => {
+    if (!bulkClarifyTarget) return;
+    setIsBulkOperating(true);
+    try {
+      for (const id of bulkClarifyTarget) {
+        await onUpdateRequest(id, STATUS.DRAFT, { clarificationRequest: comment });
+      }
+      setSelectedIds([]);
+      setBulkClarifyTarget(null);
+      setSelectedId(null);
+    } catch (error) {
+      console.error("Error bulk clarifying:", error);
+    } finally {
+      setIsBulkOperating(false);
+    }
+  };
+
+  const handleBulkRejectConfirm = async (_labelId: string, comment: string) => {
+    if (!bulkRejectTarget) return;
+    setIsBulkOperating(true);
+    try {
+      for (const id of bulkRejectTarget) {
+        await onUpdateRequest(id, STATUS.REJECTED, { rejectReason: comment });
+      }
+      setSelectedIds([]);
+      setBulkRejectTarget(null);
+      setSelectedId(null);
+    } catch (error) {
+      console.error("Error bulk rejecting:", error);
+    } finally {
+      setIsBulkOperating(false);
+    }
   };
 
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div>
-        <h2
-          className="text-white text-2xl font-bold mb-1"
-          style={{ fontFamily: "Alexandria, sans-serif" }}
-        >
-          Gestión de Aprobaciones
-        </h2>
-        <p className="text-gray-400 text-sm">
-          {pendingRequests.length} solicitud
-          {pendingRequests.length !== 1 ? "es" : ""} requiere
-          {pendingRequests.length !== 1 ? "n" : ""} atención
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2
+            className="text-white text-2xl font-bold mb-1"
+            style={{ fontFamily: "Alexandria, sans-serif" }}
+          >
+            Gestión de Aprobaciones
+          </h2>
+          <p className="text-gray-400 text-sm">
+            {pendingRequests.length} solicitud
+            {pendingRequests.length !== 1 ? "es" : ""} requiere
+            {pendingRequests.length !== 1 ? "n" : ""} atención
+          </p>
+        </div>
+        {isBulkOperating && (
+          <div className="flex items-center gap-2 text-xs text-[#00aa85] font-semibold bg-[#243545] px-3 py-1.5 rounded-lg border border-[#00aa85]/20 animate-pulse">
+            <Loader2 size={14} className="animate-spin" />
+            Procesando lote...
+          </div>
+        )}
       </div>
+
+      {/* Bulk Actions Bar */}
+      {selectedIds.length > 0 && (
+        <div className="flex items-center justify-between p-4 rounded-xl border border-[#00aa85]/30 bg-[#243545] shadow-lg shadow-[#00aa85]/5 transition-all duration-300">
+          <div className="flex items-center gap-2">
+            <span className="text-[#00aa85] text-sm font-bold">✓</span>
+            <span className="text-gray-200 text-sm font-medium">
+              {selectedIds.length} solicitud{selectedIds.length !== 1 ? "es" : ""} seleccionada{selectedIds.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleBulkApprove}
+              disabled={isBulkOperating}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-white text-xs font-semibold bg-green-600 hover:bg-green-700 disabled:opacity-50 transition-colors shadow shadow-green-950/20"
+            >
+              <CheckCircle2 size={14} />
+              Aprobar
+            </button>
+            <button
+              onClick={() => setBulkClarifyTarget(selectedIds)}
+              disabled={isBulkOperating}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-white text-xs font-semibold bg-yellow-600 hover:bg-yellow-700 disabled:opacity-50 transition-colors shadow shadow-yellow-950/20"
+            >
+              <HelpCircle size={14} />
+              Aclaración
+            </button>
+            <button
+              onClick={() => setBulkRejectTarget(selectedIds)}
+              disabled={isBulkOperating}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-white text-xs font-semibold bg-red-600 hover:bg-red-700 disabled:opacity-50 transition-colors shadow shadow-red-950/20"
+            >
+              <XCircle size={14} />
+              Rechazar
+            </button>
+            <div className="w-[1px] h-6 bg-gray-700 mx-1"></div>
+            <button
+              onClick={() => setSelectedIds([])}
+              disabled={isBulkOperating}
+              className="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white text-xs font-medium border border-gray-600 hover:border-gray-500 transition-colors"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Table */}
       <div
@@ -76,6 +208,15 @@ const ApprovalManagement: React.FC<Props> = ({ requests, onUpdateRequest }) => {
         <table className="w-full text-sm">
           <thead>
             <tr style={{ backgroundColor: "#293C47" }}>
+              <th className="px-4 py-3 w-10 text-center">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={handleSelectAll}
+                  disabled={isBulkOperating || pendingRequests.length === 0}
+                  className="rounded border-gray-600 text-[#00aa85] focus:ring-0 focus:ring-offset-0 bg-[#293C47] cursor-pointer disabled:opacity-50"
+                />
+              </th>
               <th className="text-left px-4 py-3 text-gray-300 font-semibold">
                 ID
               </th>
@@ -99,7 +240,7 @@ const ApprovalManagement: React.FC<Props> = ({ requests, onUpdateRequest }) => {
           <tbody>
             {pendingRequests.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
                   No hay solicitudes pendientes
                 </td>
               </tr>
@@ -107,11 +248,19 @@ const ApprovalManagement: React.FC<Props> = ({ requests, onUpdateRequest }) => {
             {pendingRequests.map((r) => (
               <tr
                 key={r.id}
-                className={`border-t border-gray-700 transition-colors cursor-pointer ${
-                  selectedId === r.id ? "bg-[#243545]" : "hover:bg-[#243545]"
-                }`}
+                className={`border-t border-gray-700 transition-colors cursor-pointer ${selectedId === r.id ? "bg-[#243545]" : "hover:bg-[#243545]"
+                  }`}
                 onClick={() => setSelectedId(selectedId === r.id ? null : r.id)}
               >
+                <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(r.id)}
+                    onChange={(e) => handleSelectRow(e, r.id)}
+                    disabled={isBulkOperating}
+                    className="rounded border-gray-600 text-[#00aa85] focus:ring-0 focus:ring-offset-0 bg-[#293C47] cursor-pointer disabled:opacity-50"
+                  />
+                </td>
                 <td className="px-4 py-3 text-[#00aa85] font-medium">{r.id}</td>
                 <td className="px-4 py-3 text-gray-300">{r.beneficiary}</td>
                 <td className="px-4 py-3 text-gray-400">{r.projectNumber}</td>
@@ -127,7 +276,7 @@ const ApprovalManagement: React.FC<Props> = ({ requests, onUpdateRequest }) => {
                       e.stopPropagation();
                       setSelectedId(r.id);
                     }}
-                    className="px-3 py-1 rounded text-xs font-medium text-white transition-colors"
+                    className="px-3 py-1 rounded text-xs font-medium text-white transition-colors hover:opacity-90"
                     style={{ backgroundColor: "#3d7d80" }}
                   >
                     Revisar
@@ -142,7 +291,7 @@ const ApprovalManagement: React.FC<Props> = ({ requests, onUpdateRequest }) => {
       {/* Inline detail + actions (replaces side panel) */}
       {selected && (
         <div
-          className="rounded-xl border border-gray-700 overflow-hidden"
+          className="rounded-xl border border-gray-700 overflow-hidden animate-fadeIn"
           style={{ backgroundColor: "#1e2d3d" }}
         >
           {/* Detail header */}
@@ -161,9 +310,9 @@ const ApprovalManagement: React.FC<Props> = ({ requests, onUpdateRequest }) => {
             </div>
             <button
               onClick={() => setSelectedId(null)}
-              className="text-gray-400 hover:text-white text-lg leading-none"
+              className="btn-close" aria-label="Cerrar"
             >
-              ×
+              <X size={18} />
             </button>
           </div>
 
@@ -213,28 +362,33 @@ const ApprovalManagement: React.FC<Props> = ({ requests, onUpdateRequest }) => {
           )}
 
           {/* Actions */}
-          {canAct && (
-            <div className="flex items-center gap-3 px-5 py-4 border-t border-gray-700">
-              <button
-                onClick={handleApprove}
-                className="px-5 py-2 rounded-lg text-white text-sm font-semibold bg-green-600 hover:bg-green-700 transition-colors"
-              >
-                ✓ Aprobar
-              </button>
-              <button
-                onClick={handleClarification}
-                className="px-5 py-2 rounded-lg text-white text-sm font-semibold bg-yellow-600 hover:bg-yellow-700 transition-colors"
-              >
-                ? Solicitar Aclaración
-              </button>
-              <button
-                onClick={() => setRejectTarget(selected.id)}
-                className="px-5 py-2 rounded-lg text-white text-sm font-semibold bg-red-600 hover:bg-red-700 transition-colors"
-              >
-                ✗ Rechazar
-              </button>
-            </div>
-          )}
+          <div className="flex items-center gap-3 px-5 py-4 border-t border-gray-700 flex-wrap">
+            {canAct && (
+              <>
+                <button
+                  onClick={handleApprove}
+                  className="flex items-center gap-2 px-5 py-2 rounded-lg text-white text-sm font-semibold bg-green-600 hover:bg-green-700 transition-colors shadow-lg shadow-green-900/20"
+                >
+                  <CheckCircle2 size={16} />
+                  Aprobar
+                </button>
+                <button
+                  onClick={handleClarification}
+                  className="flex items-center gap-2 px-5 py-2 rounded-lg text-white text-sm font-semibold bg-yellow-600 hover:bg-yellow-700 transition-colors shadow-lg shadow-yellow-900/20"
+                >
+                  <HelpCircle size={16} />
+                  Aclaración
+                </button>
+                <button
+                  onClick={() => setRejectTarget(selected.id)}
+                  className="flex items-center gap-2 px-5 py-2 rounded-lg text-white text-sm font-semibold bg-red-600 hover:bg-red-700 transition-colors shadow-lg shadow-red-900/20"
+                >
+                  <XCircle size={16} />
+                  Rechazar
+                </button>
+              </>
+            )}
+          </div>
         </div>
       )}
 
@@ -255,6 +409,24 @@ const ApprovalManagement: React.FC<Props> = ({ requests, onUpdateRequest }) => {
           onCancel={() => setClarifyTarget(null)}
         />
       )}
+
+      {/* Bulk Clarification Modal */}
+      {bulkClarifyTarget && (
+        <ClarifyModal
+          requestId={`${bulkClarifyTarget.length} solicitudes`}
+          onConfirm={handleBulkClarificationConfirm}
+          onCancel={() => setBulkClarifyTarget(null)}
+        />
+      )}
+
+      {/* Bulk Reject Modal */}
+      {bulkRejectTarget && (
+        <RejectModal
+          requestId={`de ${bulkRejectTarget.length} solicitudes`}
+          onConfirm={handleBulkRejectConfirm}
+          onCancel={() => setBulkRejectTarget(null)}
+        />
+      )}
     </div>
   );
 };
@@ -268,9 +440,8 @@ const Field: React.FC<{
   <div className="flex flex-col gap-0.5">
     <span className="text-gray-500 text-xs">{label}</span>
     <span
-      className={`text-sm font-medium ${
-        highlight ? "text-[#00aa85]" : "text-gray-200"
-      }`}
+      className={`text-sm font-medium ${highlight ? "text-[#00aa85]" : "text-gray-200"
+        }`}
       style={{ fontFamily: "Alexandria, sans-serif" }}
     >
       {value}
@@ -310,8 +481,7 @@ const ClarifyModal: React.FC<{
           Solicitar Aclaración — {requestId}
         </h3>
         <p className="text-gray-400 text-sm mb-4">
-          Describe qué información necesitas que el solicitante corrija o
-          aclare.
+          Describe qué información necesitas que se corrija o se aclare.
         </p>
         <textarea
           value={comment}

@@ -3,11 +3,20 @@ export interface ExchangeRate {
   rate: number;
 }
 
+export interface FinanceNote {
+  text: string;
+  timestamp: string;
+  user: string;
+}
+
 export interface StatusEvent {
   status: string;
   timestamp: string;
   changedBy: string;
   comment?: string;
+  rejectReason?: string;
+  clarificationRequest?: string;
+  clarificationResponse?: string;
 }
 
 export interface Request {
@@ -25,6 +34,9 @@ export interface Request {
   submittedBy: string;
   date: string;
   comment?: string;
+  rejectReason?: string;
+  clarificationRequest?: string;
+  clarificationResponse?: string;
   financeObservations?: string;
   amountPaid?: number;
   exchangeRateUsed?: number;
@@ -42,6 +54,14 @@ export interface Request {
   proposal?: string;
   paymentProof?: string;
   statusHistory: StatusEvent[];
+  nsProjectId?: string;
+  nsOcInternalId?: string;
+  vendorId?: string;
+  vendorRfc?: string;
+  paymentType?: string;
+  ocTotal?: number;
+  exchangeRate?: number;
+  estimatedPaymentDate?: string;
 }
 
 export const exchangeRates: ExchangeRate[] = [
@@ -269,3 +289,31 @@ export const STATUS = {
   REJECTED: "Rejected",
   PAID: "Paid",
 } as const;
+
+export const STATUS_LABEL: Record<string, string> = {
+  Draft: "Borrador",
+  "Autorización": "En autorización",
+  "Pending Fin": "Revisión Finanzas",
+  Approved: "Aprobada",
+  Paid: "Pagada",
+  Rejected: "Rechazada",
+};
+
+export const STATUS_DESC: Record<string, string> = {
+  Draft: "Pendiente de envío",
+  "Autorización": "Tu jefe directo está revisando",
+  "Pending Fin": "El equipo de Finanzas la está revisando",
+  Approved: "Lista para programar el pago",
+  Paid: "Pago procesado correctamente",
+  Rejected: "Revisa el motivo y corrige si aplica",
+};
+
+// Hex equivalents — para charts, dots, sombras (no para Tailwind).
+export const STATUS_HEX: Record<string, string> = {
+  Draft: "#828080",
+  "Autorización": "#eab308",
+  "Pending Fin": "#3D7D80",
+  Approved: "#00AA85",
+  Paid: "#a855f7",
+  Rejected: "#ef4444",
+};
