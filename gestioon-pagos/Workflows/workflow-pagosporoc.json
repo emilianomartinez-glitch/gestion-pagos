@@ -1,0 +1,491 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "path": "pagos-por-oc",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        5600,
+        3296
+      ],
+      "id": "29af725c-e99e-4434-932d-56f761ca18dc",
+      "name": "Webhook: pagos-por-oc",
+      "webhookId": "5a264299-dc41-4bc1-8ff9-bfc476587f8d"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================\n// STEP 1: Query nexttransactionlinelink for Bills linked to PO\n// ============================================================\n\nconst ACCOUNT_ID = '9231063';\nconst CONSUMER_KEY = '9129dd37d3564cc47cf6faf331d0cbc84266b0bab347c2e94fb428b7cb9b3a0a';\nconst CONSUMER_SECRET = '157e69200b8504dc6133f28b81025a96755a2b81f4acde7d66538f561687ffc6';\nconst TOKEN_ID = 'bb9ee805f466c066d3a0b3027d70fee9f9a6219c7e635d25095ec0f38ecd568a';\nconst TOKEN_SECRET = 'd27eabcb80decf6fd5b8a5c4914617972157875458eb15dbfa9fbb32db8af5ca';\n\nconst poInternalId = $input.item.json.query?.poInternalId;\nif (!poInternalId) {\n  return { json: { error: true, message: 'poInternalId query param required' } };\n}\n\nconst baseUrl = `https://${ACCOUNT_ID}.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql`;\nconst limit = 1000;\nconst offset = 0;\nconst fullUrl = `${baseUrl}?limit=${limit}&offset=${offset}`;\n\nconst crypto = require('crypto');\nconst oauth_nonce = crypto.randomBytes(16).toString('hex');\nconst oauth_timestamp = Math.floor(Date.now() / 1000).toString();\n\nconst queryParams = { limit: limit.toString(), offset: offset.toString() };\nconst oauthParams = {\n  oauth_consumer_key: CONSUMER_KEY,\n  oauth_nonce,\n  oauth_signature_method: 'HMAC-SHA256',\n  oauth_timestamp,\n  oauth_token: TOKEN_ID,\n  oauth_version: '1.0'\n};\n\nconst allParams = { ...queryParams, ...oauthParams };\nconst paramString = Object.keys(allParams)\n  .sort()\n  .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(allParams[key])}`)\n  .join('&');\n\nconst signatureBaseString = ['POST', encodeURIComponent(baseUrl), encodeURIComponent(paramString)].join('&');\nconst signingKey = `${encodeURIComponent(CONSUMER_SECRET)}&${encodeURIComponent(TOKEN_SECRET)}`;\nconst oauth_signature = crypto.createHmac('sha256', signingKey).update(signatureBaseString).digest('base64');\n\nconst authHeader =\n  `OAuth realm=\"${ACCOUNT_ID}\", ` +\n  `oauth_consumer_key=\"${CONSUMER_KEY}\", ` +\n  `oauth_token=\"${TOKEN_ID}\", ` +\n  `oauth_signature_method=\"HMAC-SHA256\", ` +\n  `oauth_timestamp=\"${oauth_timestamp}\", ` +\n  `oauth_nonce=\"${oauth_nonce}\", ` +\n  `oauth_version=\"1.0\", ` +\n  `oauth_signature=\"${encodeURIComponent(oauth_signature)}\"`;\n\nconst query = `SELECT DISTINCT nextdoc AS bill_id, nextdate AS bill_date, linktype FROM nexttransactionlinelink WHERE previousdoc = ${poInternalId} AND nexttype = 'VendBill'`;\n\nreturn {\n  json: {\n    url: fullUrl,\n    authHeader,\n    body: { q: query },\n    poInternalId\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5808,
+        3296
+      ],
+      "id": "913c1e6c-853a-4fe8-9f15-7fc897427aa8",
+      "name": "Code: Step 1 - Find Bill Links"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $json.authHeader }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "transient"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        6032,
+        3296
+      ],
+      "id": "5716a226-0aab-4658-b832-2b57858f83e7",
+      "name": "HTTP: Query Link Table"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================\n// STEP 2: Build vendorBill detail query from link results\n// ============================================================\n\nconst ACCOUNT_ID = '9231063';\nconst CONSUMER_KEY = '9129dd37d3564cc47cf6faf331d0cbc84266b0bab347c2e94fb428b7cb9b3a0a';\nconst CONSUMER_SECRET = '157e69200b8504dc6133f28b81025a96755a2b81f4acde7d66538f561687ffc6';\nconst TOKEN_ID = 'bb9ee805f466c066d3a0b3027d70fee9f9a6219c7e635d25095ec0f38ecd568a';\nconst TOKEN_SECRET = 'd27eabcb80decf6fd5b8a5c4914617972157875458eb15dbfa9fbb32db8af5ca';\n\nconst rawData = $input.item.json;\nconst parsed = JSON.parse(rawData.data);\nconst items = parsed?.items || [];\n\nconst billIds = [...new Set(items.map(i => i.bill_id).filter(Boolean))];\n\nif (billIds.length === 0) {\n  return {\n    json: {\n      skip: true,\n      result: { bills: [], payments: [], summary: { total_bills: 0, total_billed: 0, paid_count: 0, paid_total: 0, open_count: 0, open_total: 0 }, message: 'No bills linked to this PO' }\n    }\n  };\n}\n\nconst baseUrl = `https://${ACCOUNT_ID}.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql`;\nconst limit = 1000;\nconst offset = 0;\nconst fullUrl = `${baseUrl}?limit=${limit}&offset=${offset}`;\n\nconst crypto = require('crypto');\nconst oauth_nonce = crypto.randomBytes(16).toString('hex');\nconst oauth_timestamp = Math.floor(Date.now() / 1000).toString();\n\nconst queryParams = { limit: limit.toString(), offset: offset.toString() };\nconst oauthParams = {\n  oauth_consumer_key: CONSUMER_KEY,\n  oauth_nonce,\n  oauth_signature_method: 'HMAC-SHA256',\n  oauth_timestamp,\n  oauth_token: TOKEN_ID,\n  oauth_version: '1.0'\n};\n\nconst allParams = { ...queryParams, ...oauthParams };\nconst paramString = Object.keys(allParams)\n  .sort()\n  .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(allParams[key])}`)\n  .join('&');\n\nconst signatureBaseString = ['POST', encodeURIComponent(baseUrl), encodeURIComponent(paramString)].join('&');\nconst signingKey = `${encodeURIComponent(CONSUMER_SECRET)}&${encodeURIComponent(TOKEN_SECRET)}`;\nconst oauth_signature = crypto.createHmac('sha256', signingKey).update(signatureBaseString).digest('base64');\n\nconst authHeader =\n  `OAuth realm=\"${ACCOUNT_ID}\", ` +\n  `oauth_consumer_key=\"${CONSUMER_KEY}\", ` +\n  `oauth_token=\"${TOKEN_ID}\", ` +\n  `oauth_signature_method=\"HMAC-SHA256\", ` +\n  `oauth_timestamp=\"${oauth_timestamp}\", ` +\n  `oauth_nonce=\"${oauth_nonce}\", ` +\n  `oauth_version=\"1.0\", ` +\n  `oauth_signature=\"${encodeURIComponent(oauth_signature)}\"`;\n\nconst idList = billIds.join(', ');\nconst query = `SELECT vb.id AS bill_id, vb.tranId AS bill_number, vb.tranDate AS bill_date, vb.total AS bill_total, BUILTIN.DF(vb.status) AS bill_status, BUILTIN.DF(vb.currency) AS moneda, vb.exchangeRate AS tipo_cambio, BUILTIN.DF(vb.account) AS cuenta, BUILTIN.DF(vb.subsidiary) AS subsidiaria, vb.memo AS memo FROM vendorBill vb WHERE vb.id IN (${idList}) ORDER BY vb.tranDate DESC`;\n\nreturn {\n  json: {\n    url: fullUrl,\n    authHeader,\n    body: { q: query },\n    skip: false,\n    billIds\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6256,
+        3296
+      ],
+      "id": "283a1119-b92c-4465-8767-44e46846ee10",
+      "name": "Code: Step 2 - Build Bill Query"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "skip-check",
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        6480,
+        3296
+      ],
+      "id": "a26775e3-2cc1-4c3d-9ef5-fc3e3bcd9479",
+      "name": "IF: Has Bills?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $json.authHeader }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "transient"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        6688,
+        3184
+      ],
+      "id": "d72cd6e2-b556-4afb-a58d-5787bec7ef23",
+      "name": "HTTP: Query Bill Details"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================\n// STEP 3: Query payment links for each bill\n// ============================================================\n\nconst ACCOUNT_ID = '9231063';\nconst CONSUMER_KEY = '9129dd37d3564cc47cf6faf331d0cbc84266b0bab347c2e94fb428b7cb9b3a0a';\nconst CONSUMER_SECRET = '157e69200b8504dc6133f28b81025a96755a2b81f4acde7d66538f561687ffc6';\nconst TOKEN_ID = 'bb9ee805f466c066d3a0b3027d70fee9f9a6219c7e635d25095ec0f38ecd568a';\nconst TOKEN_SECRET = 'd27eabcb80decf6fd5b8a5c4914617972157875458eb15dbfa9fbb32db8af5ca';\n\n// Store bill data for later merge\nconst rawData = $input.item.json;\nconst parsed = JSON.parse(rawData.data);\nconst billItems = parsed?.items || [];\n\nconst billIds = billItems.map(b => b.bill_id).filter(Boolean);\n\nif (billIds.length === 0) {\n  return {\n    json: {\n      billItems,\n      paymentItems: [],\n      skipPayments: true\n    }\n  };\n}\n\nconst baseUrl = `https://${ACCOUNT_ID}.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql`;\nconst limit = 1000;\nconst offset = 0;\nconst fullUrl = `${baseUrl}?limit=${limit}&offset=${offset}`;\n\nconst crypto = require('crypto');\nconst oauth_nonce = crypto.randomBytes(16).toString('hex');\nconst oauth_timestamp = Math.floor(Date.now() / 1000).toString();\n\nconst queryParams = { limit: limit.toString(), offset: offset.toString() };\nconst oauthParams = {\n  oauth_consumer_key: CONSUMER_KEY,\n  oauth_nonce,\n  oauth_signature_method: 'HMAC-SHA256',\n  oauth_timestamp,\n  oauth_token: TOKEN_ID,\n  oauth_version: '1.0'\n};\n\nconst allParams = { ...queryParams, ...oauthParams };\nconst paramString = Object.keys(allParams)\n  .sort()\n  .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(allParams[key])}`)\n  .join('&');\n\nconst signatureBaseString = ['POST', encodeURIComponent(baseUrl), encodeURIComponent(paramString)].join('&');\nconst signingKey = `${encodeURIComponent(CONSUMER_SECRET)}&${encodeURIComponent(TOKEN_SECRET)}`;\nconst oauth_signature = crypto.createHmac('sha256', signingKey).update(signatureBaseString).digest('base64');\n\nconst authHeader =\n  `OAuth realm=\"${ACCOUNT_ID}\", ` +\n  `oauth_consumer_key=\"${CONSUMER_KEY}\", ` +\n  `oauth_token=\"${TOKEN_ID}\", ` +\n  `oauth_signature_method=\"HMAC-SHA256\", ` +\n  `oauth_timestamp=\"${oauth_timestamp}\", ` +\n  `oauth_nonce=\"${oauth_nonce}\", ` +\n  `oauth_version=\"1.0\", ` +\n  `oauth_signature=\"${encodeURIComponent(oauth_signature)}\"`;\n\nconst idList = billIds.join(', ');\nconst query = `SELECT ntll.previousdoc AS bill_id, ntll.nextdoc AS payment_id, ntll.nextdate AS payment_date, ntll.foreignamount AS payment_amount, BUILTIN.DF(tal.account) AS bank_account FROM nexttransactionlinelink ntll LEFT JOIN transactionaccountingline tal ON tal.transaction = ntll.nextdoc AND tal.credit > 0 WHERE ntll.previousdoc IN (${idList}) AND ntll.previoustype = 'VendBill' AND ntll.nexttype = 'VendPymt'`;\n\nreturn {\n  json: {\n    url: fullUrl,\n    authHeader,\n    body: { q: query },\n    billItems,\n    skipPayments: false\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6912,
+        3184
+      ],
+      "id": "cfde3a81-04f8-425e-87d7-5a5c016008aa",
+      "name": "Code: Step 3 - Build Payment Query"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $json.authHeader }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "transient"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        7136,
+        3184
+      ],
+      "id": "1d838ebb-6862-4f22-aa27-6f21fe6bca18",
+      "name": "HTTP: Query Payment Links"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================\n// FINAL: Merge bills + payments into clean response\n// ============================================================\n\nconst rawData = $input.item.json;\nconst poInternalId = $('Code: Step 1 - Find Bill Links').item.json.poInternalId;\n\n\n// Payment data comes from HTTP response\nlet paymentItems = [];\ntry {\n  const paymentParsed = JSON.parse(rawData.data);\n  paymentItems = paymentParsed?.items || [];\n} catch (e) {\n  paymentItems = [];\n}\n\n// Bill data was passed through from Step 3 Code node\n// We need to get it from the execution context\n// Since HTTP node overwrites json, we get billItems from the Code node before HTTP\nconst step3Node = $('Code: Step 3 - Build Payment Query');\nconst billItems = step3Node.item.json.billItems || [];\n\n// Build payment lookup: bill_id -> payment data\nconst paymentMap = {};\nfor (const p of paymentItems) {\n  const billId = p.bill_id;\n  if (!paymentMap[billId]) {\n    paymentMap[billId] = [];\n  }\n  paymentMap[billId].push({\n    payment_id: p.payment_id,\n    payment_date: p.payment_date,\n    payment_amount: parseFloat(p.payment_amount) || 0,\n    bank_account: p.bank_account || null\n  });\n}\n\n// Merge bills with payment data\nconst bills = billItems.map(bill => {\n  const billId = bill.bill_id;\n  const payments = paymentMap[billId] || [];\n  const totalPaid = payments.reduce((sum, p) => sum + Math.abs(p.payment_amount), 0);\n  const latestPayment = payments.length > 0\n    ? payments.sort((a, b) => {\n        // Sort by date descending (DD/MM/YYYY format)\n        const [da, ma, ya] = (a.payment_date || '').split('/');\n        const [db, mb, yb] = (b.payment_date || '').split('/');\n        return new Date(yb, mb - 1, db) - new Date(ya, ma - 1, da);\n      })[0]\n    : null;\n\n  return {\n    bill_id: billId,\n    bill_number: bill.bill_number || bill.tranid,\n    bill_date: bill.bill_date || bill.trandate,\n    bill_total: Math.abs(parseFloat(bill.bill_total || bill.total) || 0),\n    bill_status: bill.bill_status || bill.estatus,\n    currency: bill.moneda,\n    exchange_rate: parseFloat(bill.tipo_cambio || bill.exchangerate) || null,\n    account: bill.cuenta || null,\n    subsidiary: bill.subsidiaria || null,\n    memo: bill.memo || null,\n    // Payment data\n    is_paid: (bill.bill_status || bill.estatus || '').includes('Pagado'),\n    payment_date: latestPayment?.payment_date || null,\n    payment_amount: totalPaid > 0 ? Math.round(totalPaid * 100) / 100 : null,\n    payment_count: payments.length,\n    bank_account: latestPayment?.bank_account || null\n\n  };\n});\n\n// Summary\nconst paidBills = bills.filter(b => b.is_paid);\nconst openBills = bills.filter(b => !b.is_paid);\n\nreturn {\n  json: {\n    bills,\n    poInternalId,\n    summary: {\n      total_bills: bills.length,\n      total_billed: Math.round(bills.reduce((s, b) => s + b.bill_total, 0) * 100) / 100,\n      paid_count: paidBills.length,\n      paid_total: Math.round(paidBills.reduce((s, b) => s + b.bill_total, 0) * 100) / 100,\n      open_count: openBills.length,\n      open_total: Math.round(openBills.reduce((s, b) => s + b.bill_total, 0) * 100) / 100\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7360,
+        3184
+      ],
+      "id": "3f19cf16-6df4-4b23-9a12-4f9620ff7efa",
+      "name": "Code: Merge Bills + Payments"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        8512,
+        3184
+      ],
+      "id": "87224f30-c8c2-4df0-a114-f9ee9892ed42",
+      "name": "Respond: Success"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.result) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        6688,
+        3408
+      ],
+      "id": "4fba0edc-1600-48ec-a77c-5945b66d6a7e",
+      "name": "Respond: No Bills"
+    },
+    {
+      "parameters": {
+        "jsCode": "const ACCOUNT_ID = '9231063';\nconst CONSUMER_KEY = '9129dd37d3564cc47cf6faf331d0cbc84266b0bab347c2e94fb428b7cb9b3a0a';\nconst CONSUMER_SECRET = '157e69200b8504dc6133f28b81025a96755a2b81f4acde7d66538f561687ffc6';\nconst TOKEN_ID = 'bb9ee805f466c066d3a0b3027d70fee9f9a6219c7e635d25095ec0f38ecd568a';\nconst TOKEN_SECRET = 'd27eabcb80decf6fd5b8a5c4914617972157875458eb15dbfa9fbb32db8af5ca';\n\nconst billsData = $input.item.json;\nconst poInternalId = billsData.poInternalId;\n\nconst baseUrl = `https://${ACCOUNT_ID}.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql`;\nconst limit = 1000;\nconst offset = 0;\nconst fullUrl = `${baseUrl}?limit=${limit}&offset=${offset}`;\n\nconst crypto = require('crypto');\nconst oauth_nonce = crypto.randomBytes(16).toString('hex');\nconst oauth_timestamp = Math.floor(Date.now() / 1000).toString();\n\nconst queryParams = { limit: limit.toString(), offset: offset.toString() };\nconst oauthParams = {\n  oauth_consumer_key: CONSUMER_KEY,\n  oauth_nonce,\n  oauth_signature_method: 'HMAC-SHA256',\n  oauth_timestamp,\n  oauth_token: TOKEN_ID,\n  oauth_version: '1.0'\n};\n\nconst allParams = { ...queryParams, ...oauthParams };\nconst paramString = Object.keys(allParams).sort()\n  .map(k => `${encodeURIComponent(k)}=${encodeURIComponent(allParams[k])}`).join('&');\n\nconst signatureBaseString = ['POST', encodeURIComponent(baseUrl), encodeURIComponent(paramString)].join('&');\nconst signingKey = `${encodeURIComponent(CONSUMER_SECRET)}&${encodeURIComponent(TOKEN_SECRET)}`;\nconst oauth_signature = crypto.createHmac('sha256', signingKey).update(signatureBaseString).digest('base64');\n\nconst authHeader =\n  `OAuth realm=\"${ACCOUNT_ID}\", ` +\n  `oauth_consumer_key=\"${CONSUMER_KEY}\", ` +\n  `oauth_token=\"${TOKEN_ID}\", ` +\n  `oauth_signature_method=\"HMAC-SHA256\", ` +\n  `oauth_timestamp=\"${oauth_timestamp}\", ` +\n  `oauth_nonce=\"${oauth_nonce}\", ` +\n  `oauth_version=\"1.0\", ` +\n  `oauth_signature=\"${encodeURIComponent(oauth_signature)}\"`;\n\nreturn {\n  json: {\n    url: fullUrl,\n    authHeader,\n    body: { q: `SELECT BUILTIN.DF(t.status) AS po_status, t.tranId AS po_number FROM purchaseOrder t WHERE t.id = '${poInternalId}'` },\n    // Pasar los datos de bills para el merge final\n    billsData\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7648,
+        3184
+      ],
+      "id": "b044de2a-b85e-4240-83e2-f0b1321ba33b",
+      "name": "Code: Build PO Status Query"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $json.authHeader }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "transient"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        7952,
+        3200
+      ],
+      "id": "b50a717b-8f6d-4e63-bf8d-9b368457b563",
+      "name": "HTTP: Query PO Status"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.item.json;\nconst billsData = $('Code: Build PO Status Query').item.json.billsData;\n\nlet po_status = null;\nlet po_number = null;\ntry {\n  const parsed = JSON.parse(raw.data);\n  const item = parsed?.items?.[0];\n  po_status = item?.po_status ?? null;\n  po_number = item?.po_number ?? null;\n} catch(e) {}\n\nreturn {\n  json: {\n    bills: billsData.bills,\n    po_status,\n    po_number,\n    summary: billsData.summary\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8240,
+        3200
+      ],
+      "id": "f65a61a2-398e-494a-9c41-15ebad4d3485",
+      "name": "Code: Attach PO Status"
+    }
+  ],
+  "connections": {
+    "Webhook: pagos-por-oc": {
+      "main": [
+        [
+          {
+            "node": "Code: Step 1 - Find Bill Links",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Step 1 - Find Bill Links": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Query Link Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Query Link Table": {
+      "main": [
+        [
+          {
+            "node": "Code: Step 2 - Build Bill Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Step 2 - Build Bill Query": {
+      "main": [
+        [
+          {
+            "node": "IF: Has Bills?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Has Bills?": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Query Bill Details",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond: No Bills",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Query Bill Details": {
+      "main": [
+        [
+          {
+            "node": "Code: Step 3 - Build Payment Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Step 3 - Build Payment Query": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Query Payment Links",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Query Payment Links": {
+      "main": [
+        [
+          {
+            "node": "Code: Merge Bills + Payments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Merge Bills + Payments": {
+      "main": [
+        [
+          {
+            "node": "Code: Build PO Status Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Build PO Status Query": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Query PO Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Query PO Status": {
+      "main": [
+        [
+          {
+            "node": "Code: Attach PO Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Attach PO Status": {
+      "main": [
+        [
+          {
+            "node": "Respond: Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d07ceca5e978fedf0de8319073f060d445fc5f9ac86873adfc6d77f9052a35c4"
+  }
+}

@@ -1,0 +1,222 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "887712be-6e38-443d-b8d0-c54d2012c5ef",
+              "leftValue": "={{ $input.all().length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1520,
+        1952
+      ],
+      "id": "4d5b3d0f-d3ef-494f-b8b7-6ce4d4f5d33c",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734",
+          "mode": "list",
+          "cachedResultName": "MZ-FIN-08 - Matriz de solicitudes de pago",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1516631558,
+          "mode": "list",
+          "cachedResultName": "Roles Portal Pagos",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit#gid=1516631558"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "email",
+              "lookupValue": "={{ $json.query.email }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1296,
+        1952
+      ],
+      "id": "9ef2c3bc-3b69-4053-b7b2-73bf177bba82",
+      "name": "Hoja Sheets Roles",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "af48hEP1PbQpWRo9",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "role",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        1072,
+        1952
+      ],
+      "id": "b5995ea3-4df9-44ef-b76f-824fcee24fd1",
+      "name": "Webhook - Role",
+      "webhookId": "99d2d0d6-ba53-431e-aa96-120aef497fc7"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1968,
+        1952
+      ],
+      "id": "925f156d-3ca0-4ceb-aa0e-f0e8dca896b4",
+      "name": "Role"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c45a2cbf-b70b-488d-8f68-50471235b21a",
+              "name": "role",
+              "value": "={{ $('Hoja Sheets Roles').item.json.role }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1744,
+        1856
+      ],
+      "id": "03f8f4d7-c0b8-422f-9bac-761c9a1d8bd8",
+      "name": "Con Rol"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b8604d87-ed37-49ae-83d5-90a9efdda273",
+              "name": "role",
+              "value": "solicitante",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1744,
+        2048
+      ],
+      "id": "90df2a78-3249-4573-bfd3-d06ce3eb41bd",
+      "name": "Solicitante"
+    }
+  ],
+  "connections": {
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Con Rol",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Solicitante",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hoja Sheets Roles": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook - Role": {
+      "main": [
+        [
+          {
+            "node": "Hoja Sheets Roles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Con Rol": {
+      "main": [
+        [
+          {
+            "node": "Role",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Solicitante": {
+      "main": [
+        [
+          {
+            "node": "Role",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d07ceca5e978fedf0de8319073f060d445fc5f9ac86873adfc6d77f9052a35c4"
+  }
+}

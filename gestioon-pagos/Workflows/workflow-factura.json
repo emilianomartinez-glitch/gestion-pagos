@@ -1,0 +1,153 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const ocNumber = $('Webhook URL Factura').first().json.query.ocNumber;\nreturn [{ json: { ocNumber } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7168,
+        4496
+      ],
+      "id": "18455afe-e5a3-4294-a28f-8266372d9ac9",
+      "name": "COde-preparar query"
+    },
+    {
+      "parameters": {
+        "path": "link-factura",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        6960,
+        4496
+      ],
+      "id": "c1324338-126c-421a-a1b3-9a418bbaa19e",
+      "name": "Webhook URL Factura",
+      "webhookId": "9d984c9f-30b8-473f-ba2b-03ef829ce7ee"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YmNfXIVBIRY5LH2C9jBE26d5JFPbyRutrKxK4VfLptE",
+          "mode": "list",
+          "cachedResultName": "Recepción de facturas de proveedores y clientes internos",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YmNfXIVBIRY5LH2C9jBE26d5JFPbyRutrKxK4VfLptE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Registros",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YmNfXIVBIRY5LH2C9jBE26d5JFPbyRutrKxK4VfLptE/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "N° OC",
+              "lookupValue": "={{ $json.ocNumber }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        7376,
+        4496
+      ],
+      "id": "6a23613d-2f16-4500-a123-bf0173c4f6fe",
+      "name": "Get row(s) in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "af48hEP1PbQpWRo9",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ocNumber = $('Webhook URL Factura').first().json.query.ocNumber;\nconst rows = $input.all();\n\nif (!rows || rows.length === 0) {\n  return [{ json: { found: false, ocNumber, drive_folder_url: null } }];\n}\n\nconst row = rows[0].json;\n\n// Ajusta los nombres de columna a los de tu sheet real\nreturn [{\n  json: {\n    found: true,\n    ocNumber,\n    drive_folder_url: row['URL Carpeta'] ?? row['url_carpeta'] ?? null\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7584,
+        4496
+      ],
+      "id": "48d0bdc5-20a2-4e12-9260-5768dab2daf2",
+      "name": "Code - build url rsponse"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        7888,
+        4480
+      ],
+      "id": "4886e69b-74b8-463c-9a00-1ff32db3ac85",
+      "name": "Respond to Webhook6"
+    }
+  ],
+  "connections": {
+    "COde-preparar query": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook URL Factura": {
+      "main": [
+        [
+          {
+            "node": "COde-preparar query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet2": {
+      "main": [
+        [
+          {
+            "node": "Code - build url rsponse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - build url rsponse": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d07ceca5e978fedf0de8319073f060d445fc5f9ac86873adfc6d77f9052a35c4"
+  }
+}

@@ -1,0 +1,160 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "path": "tipo-cambio",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        1088,
+        3744
+      ],
+      "id": "593dda71-4e0b-4a0f-ba91-deb176b26db0",
+      "name": "Webhook - Get Tipo de Cambio",
+      "webhookId": "7843ee8b-28ea-4852-ab07-1093b0469054"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734",
+          "mode": "list",
+          "cachedResultName": "MZ-FIN-08 - Matriz de solicitudes de pago",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 908320927,
+          "mode": "list",
+          "cachedResultName": "Banxico",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit#gid=908320927"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1312,
+        3744
+      ],
+      "id": "59154d67-67e7-450c-a086-fc9e2af3c152",
+      "name": "Get row(s) in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "af48hEP1PbQpWRo9",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all();\nconst rates = [];\n\n// Helper to convert D/M/YYYY into a sortable number\nfunction getTimestamp(dateStr) {\n  const parts = dateStr.includes('/') ? dateStr.split('/') : dateStr.split('-');\n  if (parts.length === 3) {\n    const d = dateStr.includes('/') \n      ? new Date(parts[2], parts[1] - 1, parts[0]) // D/M/YYYY\n      : new Date(parts[0], parts[1] - 1, parts[2]); // YYYY-MM-DD\n    return d.getTime();\n  }\n  return new Date(dateStr).getTime();\n}\n\nfor (const row of rows) {\n  const d = row.json;\n  const date = d[\"Fecha\"] || d[\"fecha\"] || \"\";\n  const rawRate = d[\"Determinación\"] || d[\"Determinacion\"] || d[\"determinación\"] || \"0\";\n  const rate = parseFloat(String(rawRate).replace(',', '.'));\n\n  if (date && rate > 0) {\n    rates.push({ \n      date, \n      rate, \n      timestamp: getTimestamp(date) \n    });\n  }\n}\n\n// 1. Sort by real timestamp (Descending)\nrates.sort((a, b) => b.timestamp - a.timestamp);\n\n// 2. Take top 30 (most recent)\nconst last30 = rates.slice(0, 30);\n\n// 3. Reverse back to Ascending for the chart display\nlast30.reverse();\n\nreturn last30.map(r => ({ \n  json: { date: r.date, rate: r.rate } \n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1536,
+        3744
+      ],
+      "id": "9801050e-5b29-4df5-be79-f8913389e432",
+      "name": "Code in JavaScript4"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1760,
+        3744
+      ],
+      "id": "779d5cf8-3c31-401f-9a96-6aa4187d2e5e",
+      "name": "Respond to Webhook4"
+    }
+  ],
+  "connections": {
+    "Webhook - Get Tipo de Cambio": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript4": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "Webhook - Get Tipo de Cambio": [
+      {
+        "headers": {
+          "host": "egenlight.app.n8n.cloud",
+          "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+          "accept": "*/*",
+          "accept-encoding": "gzip, br",
+          "accept-language": "es-ES,es;q=0.9",
+          "cdn-loop": "cloudflare; loops=1; subreqs=1",
+          "cf-connecting-ip": "2806:107e:7:caef:bda5:61d0:34e1:acf8",
+          "cf-ew-via": "15",
+          "cf-ipcountry": "MX",
+          "cf-ray": "a11d193b8b728cb8-DFW",
+          "cf-visitor": "{\"scheme\":\"https\"}",
+          "cf-worker": "n8n.cloud",
+          "origin": "https://gestion-pagos-enlight.vercel.app",
+          "priority": "u=1, i",
+          "referer": "https://gestion-pagos-enlight.vercel.app/",
+          "sec-ch-ua": "\"Google Chrome\";v=\"149\", \"Chromium\";v=\"149\", \"Not)A;Brand\";v=\"24\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Windows\"",
+          "sec-fetch-dest": "empty",
+          "sec-fetch-mode": "cors",
+          "sec-fetch-site": "cross-site",
+          "x-forwarded-for": "2806:107e:7:caef:bda5:61d0:34e1:acf8, 162.159.106.43",
+          "x-forwarded-host": "egenlight.app.n8n.cloud",
+          "x-forwarded-port": "443",
+          "x-forwarded-proto": "https",
+          "x-forwarded-server": "traefik-prod-users-gwc-105-59f487f4c8-97vcv",
+          "x-is-trusted": "yes",
+          "x-real-ip": "2806:107e:7:caef:bda5:61d0:34e1:acf8"
+        },
+        "params": {},
+        "query": {},
+        "body": {},
+        "webhookUrl": "https://egenlight.app.n8n.cloud/webhook/tipo-cambio",
+        "executionMode": "production"
+      }
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d07ceca5e978fedf0de8319073f060d445fc5f9ac86873adfc6d77f9052a35c4"
+  }
+}

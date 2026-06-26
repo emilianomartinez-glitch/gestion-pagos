@@ -1,0 +1,204 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "path": "vendor-name",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        3008,
+        2640
+      ],
+      "id": "f42356c5-63db-4a20-8828-fe2ec2dace86",
+      "name": "API vendor name NetSuite",
+      "webhookId": "592b0638-b024-4dfc-a390-f1d744c27acf"
+    },
+    {
+      "parameters": {
+        "jsCode": "const ACCOUNT_ID = '9231063';\nconst CONSUMER_KEY = '9129dd37d3564cc47cf6faf331d0cbc84266b0bab347c2e94fb428b7cb9b3a0a';\nconst CONSUMER_SECRET = '157e69200b8504dc6133f28b81025a96755a2b81f4acde7d66538f561687ffc6';\nconst TOKEN_ID = 'bb9ee805f466c066d3a0b3027d70fee9f9a6219c7e635d25095ec0f38ecd568a';\nconst TOKEN_SECRET = 'd27eabcb80decf6fd5b8a5c4914617972157875458eb15dbfa9fbb32db8af5ca';\n\nconst vendorId = $input.item.json.query.id;\nif (!vendorId) {\n  return { json: { error: 'id query param required' } };\n}\n\nconst baseUrl = `https://${ACCOUNT_ID}.suitetalk.api.netsuite.com/services/rest/record/v1/vendor/${vendorId}`;\n\nconst crypto = require('crypto');\nconst oauth_nonce = crypto.randomBytes(16).toString('hex');\nconst oauth_timestamp = Math.floor(Date.now() / 1000).toString();\n\nconst oauthParams = {\n  oauth_consumer_key: CONSUMER_KEY,\n  oauth_nonce,\n  oauth_signature_method: 'HMAC-SHA256',\n  oauth_timestamp,\n  oauth_token: TOKEN_ID,\n  oauth_version: '1.0'\n};\n\nconst paramString = Object.keys(oauthParams)\n  .sort()\n  .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(oauthParams[key])}`)\n  .join('&');\n\nconst signatureBaseString = ['GET', encodeURIComponent(baseUrl), encodeURIComponent(paramString)].join('&');\nconst signingKey = `${encodeURIComponent(CONSUMER_SECRET)}&${encodeURIComponent(TOKEN_SECRET)}`;\nconst oauth_signature = crypto.createHmac('sha256', signingKey).update(signatureBaseString).digest('base64');\n\nconst authHeader =\n  `OAuth realm=\"${ACCOUNT_ID}\", ` +\n  `oauth_consumer_key=\"${CONSUMER_KEY}\", ` +\n  `oauth_token=\"${TOKEN_ID}\", ` +\n  `oauth_signature_method=\"HMAC-SHA256\", ` +\n  `oauth_timestamp=\"${oauth_timestamp}\", ` +\n  `oauth_nonce=\"${oauth_nonce}\", ` +\n  `oauth_version=\"1.0\", ` +\n  `oauth_signature=\"${encodeURIComponent(oauth_signature)}\"`;\n\nreturn {\n  json: { url: baseUrl, authHeader, vendorId }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3248,
+        2640
+      ],
+      "id": "e4034a26-9777-400b-a221-92e8959fb65d",
+      "name": "Code: OAuth SuiteQL1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json;\nlet parsed;\ntry {\n  parsed = typeof raw.data === 'string' ? JSON.parse(raw.data) : raw;\n} catch (e) {\n  return { json: { error: 'PARSE_FAILED' } };\n}\n\nreturn {\n  json: {\n    id: parsed.id,\n    code: parsed.entityId,\n    name: parsed.companyName || parsed.altName || 'Unknown',\n    rfc: parsed.custentity_mx_rfc || null,\n    email: parsed.email || null\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3760,
+        2640
+      ],
+      "id": "af9c6654-babb-4d5a-9806-7d901dde4cc2",
+      "name": "Transform vendors"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3984,
+        2640
+      ],
+      "id": "517be8ad-3a08-4344-9c3f-df8c17a1296d",
+      "name": "Vendors Netsuite"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $json.authHeader }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "transient"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ad6d52c0-d72c-49a5-9690-7e1d5b04cac8",
+      "name": "Consultar NetSuite Proyectos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3472,
+        2640
+      ]
+    }
+  ],
+  "connections": {
+    "API vendor name NetSuite": {
+      "main": [
+        [
+          {
+            "node": "Code: OAuth SuiteQL1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: OAuth SuiteQL1": {
+      "main": [
+        [
+          {
+            "node": "Consultar NetSuite Proyectos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform vendors": {
+      "main": [
+        [
+          {
+            "node": "Vendors Netsuite",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar NetSuite Proyectos": {
+      "main": [
+        [
+          {
+            "node": "Transform vendors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "API vendor name NetSuite": [
+      {
+        "headers": {
+          "host": "egenlight.app.n8n.cloud",
+          "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+          "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          "accept-encoding": "gzip, br",
+          "accept-language": "es-ES,es;q=0.9",
+          "cache-control": "max-age=0",
+          "cdn-loop": "cloudflare; loops=1; subreqs=1",
+          "cf-connecting-ip": "2806:2f0:a060:fce1:2838:dd06:ab6c:553a",
+          "cf-ew-via": "15",
+          "cf-ipcountry": "MX",
+          "cf-ray": "9fe4810948806b35-DFW",
+          "cf-visitor": "{\"scheme\":\"https\"}",
+          "cf-worker": "n8n.cloud",
+          "cookie": {
+            "__redacted": true,
+            "reason": "node_defined_field",
+            "canReveal": false
+          },
+          "priority": "u=0, i",
+          "sec-ch-ua": "\"Chromium\";v=\"148\", \"Google Chrome\";v=\"148\", \"Not/A)Brand\";v=\"99\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Windows\"",
+          "sec-fetch-dest": "document",
+          "sec-fetch-mode": "navigate",
+          "sec-fetch-site": "none",
+          "sec-fetch-user": "?1",
+          "upgrade-insecure-requests": "1",
+          "x-forwarded-for": "2806:2f0:a060:fce1:2838:dd06:ab6c:553a, 172.68.27.166",
+          "x-forwarded-host": "egenlight.app.n8n.cloud",
+          "x-forwarded-port": "443",
+          "x-forwarded-proto": "https",
+          "x-forwarded-server": "traefik-prod-users-gwc-105-59f487f4c8-984m7",
+          "x-is-trusted": "yes",
+          "x-real-ip": "2806:2f0:a060:fce1:2838:dd06:ab6c:553a"
+        },
+        "params": {},
+        "query": {
+          "id": "3348"
+        },
+        "body": {},
+        "webhookUrl": "https://egenlight.app.n8n.cloud/webhook/vendor-name",
+        "executionMode": "production"
+      }
+    ],
+    "Consultar NetSuite Proyectos": [
+      {
+        "data": "{\"links\":[{\"rel\":\"self\",\"href\":\"https://9231063.suitetalk.api.netsuite.com/services/rest/record/v1/vendor/3348\",\"method\":\"GET\"}],\"addressBook\":{\"links\":[{\"rel\":\"self\",\"href\":\"https://9231063.suitetalk.api.netsuite.com/services/rest/record/v1/vendor/3348/addressBook\",\"method\":\"GET\"}]},\"altName\":\"Exel Solar SAPI De CV\",\"balance\":4.405166985E7,\"balancePrimary\":2487343.3,\"companyName\":\"Exel Solar SAPI De CV\",\"currency\":{\"links\":[{\"rel\":\"self\",\"href\":\"https://9231063.suitetalk.api.netsuite.com/services/rest/record/v1/currency/2\",\"method\":\"GET\"}],\"id\":\"2\",\"refName\":\"US Dollar\"},\"currencyList\":{\"links\":[{\"rel\":\"self\",\"href\":\"https://9231063.suitetalk.api.netsuite.com/services/rest/record/v1/vendor/3348/currencyList\",\"method\":\"GET\"}]},\"custentity_11724_pay_bank_fees\":false,\"custentity_2663_email_address_notif\":\"ana.peraza@exelsolar.com\",\"custentity_2663_payment_method\":false,\"custentity_bb_prefers_design_amt_as_addr\":false,\"custentity_bb_prefers_site_audit_as_addr\":false,\"custentity_bb_uat_data_boolean\":false,\"custentity_bbss_configuration\":{\"links\":[{\"rel\":\"self\",\"href\":\"https://9231063.suitetalk.api.netsuite.com/services/rest/record/v1/customrecord_bb_solar_success_configurtn/1\",\"method\":\"GET\"}],\"id\":\"1\",\"refName\":\"SolarSuccess Integration Configuration\"},\"custentity_be_ams_clavpaises\":{\"links\":[],\"id\":\"157\",\"refName\":\"México\"},\"custentity_be_aplica_diot\":true,\"custentity_be_nacionalidad\":{\"links\":[{\"rel\":\"self\",\"href\":\"https://9231063.suitetalk.api.netsuite.com/services/rest/record/v1/customrecord_be_nacionalidad/73\",\"method\":\"GET\"}],\"id\":\"73\",\"refName\":\"MEXICANA\"},\"custentity_be_tipo_tercero\":{\"links\":[{\"rel\":\"self\",\"href\":\"https://9231063.suitetalk.api.netsuite.com/services/rest/record/v1/customrecord_be_tipo_tercero_diot/4\",\"method\":\"GET\"}],\"id\":\"4\",\"refName\":\"04 Nacional\"},\"custentity_bluchat_allow_sms\":false,\"custentity_bluchat_exclude_user\":false,\"custentity_bluchat_external_user\":false,\"custentity_bluchat_full_mention_list\":false,\"custentity_c360_entity_order_lead_time\":\"49\",\"custentity_edoc_gen_trans_pdf\":false,\"custentity_edoc_use_sender_list\":false,\"custentity_mx_rfc\":\"ESO140130IU1\",\"custentity_psg_ei_auto_select_temp_sm\":true,\"custentity_radi_oyster_ap_clabe\":\"012914002017994870\",\"custentity_ste_entity_nexuses\":\"{\\\"1\\\":{\\\"description\\\":\\\"México\\\",\\\"country\\\":\\\"MX\\\",\\\"state\\\":\\\"\\\"},\\\"3\\\":{\\\"description\\\":\\\"Chile\\\",\\\"country\\\":\\\"CL\\\",\\\"state\\\":\\\"\\\"},\\\"4\\\":{\\\"description\\\":\\\"Colombia\\\",\\\"country\\\":\\\"CO\\\",\\\"state\\\":\\\"\\\"}}\",\"custentity_tipo_operacion_diot\":{\"links\":[{\"rel\":\"self\",\"href\":\"https://9231063.suitetalk.api.netsuite.com/services/rest/record/v1/customlist_tipo_operacion_diot/3\",\"method\":\"GET\"}],\"id\":\"3\",\"refName\":\"85 Otros\"},\"custentitycustfield_print_on_check_name\":\"Exel Solar SAPI De CV\",\"customForm\":{\"links\":[],\"id\":\"187\",\"refName\":\"ENL Vendor Form\"},\"dateCreated\":\"2023-12-27T05:20:00Z\",\"defaultAddress\":\"ANILLO PERIFERICO KM 26.5 NO.14205\",\"email\":\"ana.peraza@exelsolar.com\",\"emailPreference\":{\"links\":[],\"id\":\"DEFAULT\",\"refName\":\"Predeterminado\"},\"emailTransactions\":false,\"entityId\":\"VEN-395\",\"expenseAccount\":{\"links\":[{\"rel\":\"self\",\"href\":\"https://9231063.suitetalk.api.netsuite.com/services/rest/record/v1/account/686\",\"method\":\"GET\"}],\"id\":\"686\",\"refName\":\"501.01 Costos : Costo de venta y/o servicio : Costo de venta\"},\"externalId\":\"97006543\",\"faxTransactions\":false,\"id\":\"3348\",\"is1099Eligible\":false,\"isAutogeneratedRepresentingEntity\":false,\"isInactive\":false,\"isJobResourceVend\":false,\"isPerson\":false,\"lastModifiedDate\":\"2026-04-20T16:04:00Z\",\"legalName\":\"Exel Solar SAPI De CV\",\"payablesAccount\":{\"links\":[{\"rel\":\"self\",\"href\":\"https://9231063.suitetalk.api.netsuite.com/services/rest/record/v1/account/413\",\"method\":\"GET\"}],\"id\":\"413\",\"refName\":\"201.01 Pasivo : Proveedores : Proveedores nacionales\"},\"prepaymentBalance\":1938280.57,\"printTransactions\":false,\"subsidiary\":{\"links\":[{\"rel\":\"self\",\"href\":\"https://9231063.suitetalk.api.netsuite.com/services/rest/record/v1/subsidiary/4\",\"method\":\"GET\"}],\"id\":\"4\",\"refName\":\"Enerclima\"},\"subsidiaryEdition\":\"XX\",\"taxRegistration\":{\"links\":[{\"rel\":\"self\",\"href\":\"https://9231063.suitetalk.api.netsuite.com/services/rest/record/v1/vendor/3348/taxRegistration\",\"method\":\"GET\"}]},\"terms\":{\"links\":[{\"rel\":\"self\",\"href\":\"https://9231063.suitetalk.api.netsuite.com/services/rest/record/v1/term/8\",\"method\":\"GET\"}],\"id\":\"8\",\"refName\":\"Net 45\"},\"unbilledOrders\":7.960813097E7,\"unbilledOrdersPrimary\":4370645.25,\"workCalendar\":{\"links\":[],\"id\":\"1\",\"refName\":\"Calendario laboral por defecto\"}}\n"
+      }
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d07ceca5e978fedf0de8319073f060d445fc5f9ac86873adfc6d77f9052a35c4"
+  }
+}

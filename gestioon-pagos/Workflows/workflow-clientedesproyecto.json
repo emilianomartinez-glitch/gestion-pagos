@@ -1,0 +1,151 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "path": "proyecto-detalle",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        7760,
+        3744
+      ],
+      "id": "0dd97e42-f5d5-4b16-a0ac-1d77002f71da",
+      "name": "Webhook - Cliente desde proyecto",
+      "webhookId": "3cb49f74-98e7-4f9f-a39c-65a000848eee"
+    },
+    {
+      "parameters": {
+        "jsCode": "const ACCOUNT_ID = '9231063';\nconst CONSUMER_KEY = '9129dd37d3564cc47cf6faf331d0cbc84266b0bab347c2e94fb428b7cb9b3a0a';\nconst CONSUMER_SECRET = '157e69200b8504dc6133f28b81025a96755a2b81f4acde7d66538f561687ffc6';\nconst TOKEN_ID = 'bb9ee805f466c066d3a0b3027d70fee9f9a6219c7e635d25095ec0f38ecd568a';\nconst TOKEN_SECRET = 'd27eabcb80decf6fd5b8a5c4914617972157875458eb15dbfa9fbb32db8af5ca';\n\nconst projectId = $('Webhook - Cliente desde proyecto').first().json.query.projectId;\nconst baseUrl = `https://${ACCOUNT_ID}.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql`;\n\nconst crypto = require('crypto');\nconst oauth_nonce = crypto.randomBytes(16).toString('hex');\nconst oauth_timestamp = Math.floor(Date.now() / 1000).toString();\n\nconst oauthParams = {\n  oauth_consumer_key: CONSUMER_KEY,\n  oauth_nonce,\n  oauth_signature_method: 'HMAC-SHA256',\n  oauth_timestamp,\n  oauth_token: TOKEN_ID,\n  oauth_version: '1.0'\n};\n\nconst paramString = Object.keys(oauthParams).sort()\n  .map(k => `${encodeURIComponent(k)}=${encodeURIComponent(oauthParams[k])}`).join('&');\n\nconst signatureBaseString = ['POST', encodeURIComponent(baseUrl), encodeURIComponent(paramString)].join('&');\nconst signingKey = `${encodeURIComponent(CONSUMER_SECRET)}&${encodeURIComponent(TOKEN_SECRET)}`;\nconst oauth_signature = crypto.createHmac('sha256', signingKey).update(signatureBaseString).digest('base64');\n\nconst authHeader = `OAuth realm=\"${ACCOUNT_ID}\", ` +\n  `oauth_consumer_key=\"${CONSUMER_KEY}\", oauth_token=\"${TOKEN_ID}\", ` +\n  `oauth_signature_method=\"HMAC-SHA256\", oauth_timestamp=\"${oauth_timestamp}\", ` +\n  `oauth_nonce=\"${oauth_nonce}\", oauth_version=\"1.0\", ` +\n  `oauth_signature=\"${encodeURIComponent(oauth_signature)}\"`;\n\nreturn [{ json: { projectId, authHeader, suiteqlUrl: baseUrl } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7968,
+        3744
+      ],
+      "id": "1002b4dd-bc57-4aa5-a6d2-877cfc797425",
+      "name": "Code in JavaScript5"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.suiteqlUrl }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $json.authHeader }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "transient"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"q\": \"SELECT j.id AS internal_id, j.entityId AS code, j.companyName AS name, j.customer AS customer_id, BUILTIN.DF(j.customer) AS customer_code, c.companyName AS customer_name FROM job j JOIN customer c ON j.customer = c.id WHERE j.id = '{{ $json.projectId }}'\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        8240,
+        3760
+      ],
+      "id": "0a5a4ac9-e3ed-4bc1-9a77-8aef46eb6b9b",
+      "name": "HTTP: Query Payment Links1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = JSON.parse($input.first().json.data ?? '{}');\nconst item = raw.items?.[0];\n\nif (!item) {\n  return [{ json: { error: 'Proyecto no encontrado', projectId: $('Webhook - Cliente desde proyecto').first().json.query.projectId } }];\n}\n\nreturn [{\n  json: {\n    internal_id: item.internal_id,\n    code: item.code,\n    name: item.name,\n    customer: {\n      id: item.customer_id,\n      name: item.customer_name\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8448,
+        3760
+      ],
+      "id": "1425ac64-982f-4dcd-8f06-6046f9b28d82",
+      "name": "Code - Build Response"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        8656,
+        3760
+      ],
+      "id": "7554b62b-1643-4e41-9c50-88ad79cd4257",
+      "name": "Respond to Webhook5"
+    }
+  ],
+  "connections": {
+    "Webhook - Cliente desde proyecto": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript5": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Query Payment Links1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Query Payment Links1": {
+      "main": [
+        [
+          {
+            "node": "Code - Build Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Build Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d07ceca5e978fedf0de8319073f060d445fc5f9ac86873adfc6d77f9052a35c4"
+  }
+}

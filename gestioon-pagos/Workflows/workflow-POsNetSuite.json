@@ -1,0 +1,238 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a4db078c-655b-4397-ac99-2b46d127de1d",
+              "name": "offset",
+              "value": "={{ $json.query?.offset }}",
+              "type": "number"
+            },
+            {
+              "id": "43c8b264-f79a-4ef3-b76a-1521e358d3dc",
+              "name": "projectId",
+              "value": "={{$json.query?.projectId}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3216,
+        2400
+      ],
+      "id": "a9deefc2-8cdf-4cf1-ab07-c3d47822dac3",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "const ACCOUNT_ID = '9231063';\nconst CONSUMER_KEY = '9129dd37d3564cc47cf6faf331d0cbc84266b0bab347c2e94fb428b7cb9b3a0a';\nconst CONSUMER_SECRET = '157e69200b8504dc6133f28b81025a96755a2b81f4acde7d66538f561687ffc6';\nconst TOKEN_ID = 'bb9ee805f466c066d3a0b3027d70fee9f9a6219c7e635d25095ec0f38ecd568a';\nconst TOKEN_SECRET = 'd27eabcb80decf6fd5b8a5c4914617972157875458eb15dbfa9fbb32db8af5ca';\n\nconst projectId = $input.item.json.projectId;\nif (!projectId) {\n  return { json: { error: 'projectId query param required' } };\n}\n\nconst baseUrl = `https://${ACCOUNT_ID}.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql`;\nconst limit = 1000;\nconst offset = $input.item.json.offset || 0;\nconst fullUrl = `${baseUrl}?limit=${limit}&offset=${offset}`;\n\nconst crypto = require('crypto');\nconst oauth_nonce = crypto.randomBytes(16).toString('hex');\nconst oauth_timestamp = Math.floor(Date.now() / 1000).toString();\n\nconst queryParams = { limit: limit.toString(), offset: offset.toString() };\nconst oauthParams = {\n  oauth_consumer_key: CONSUMER_KEY,\n  oauth_nonce,\n  oauth_signature_method: 'HMAC-SHA256',\n  oauth_timestamp,\n  oauth_token: TOKEN_ID,\n  oauth_version: '1.0'\n};\n\nconst allParams = { ...queryParams, ...oauthParams };\nconst paramString = Object.keys(allParams)\n  .sort()\n  .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(allParams[key])}`)\n  .join('&');\n\nconst signatureBaseString = ['POST', encodeURIComponent(baseUrl), encodeURIComponent(paramString)].join('&');\nconst signingKey = `${encodeURIComponent(CONSUMER_SECRET)}&${encodeURIComponent(TOKEN_SECRET)}`;\nconst oauth_signature = crypto.createHmac('sha256', signingKey).update(signatureBaseString).digest('base64');\n\nconst authHeader =\n  `OAuth realm=\"${ACCOUNT_ID}\", ` +\n  `oauth_consumer_key=\"${CONSUMER_KEY}\", ` +\n  `oauth_token=\"${TOKEN_ID}\", ` +\n  `oauth_signature_method=\"HMAC-SHA256\", ` +\n  `oauth_timestamp=\"${oauth_timestamp}\", ` +\n  `oauth_nonce=\"${oauth_nonce}\", ` +\n  `oauth_version=\"1.0\", ` +\n  `oauth_signature=\"${encodeURIComponent(oauth_signature)}\"`;\n\nconst query = `SELECT t.id AS internal_id, t.tranId AS oc_number, t.tranDate AS fecha, BUILTIN.DF(t.status) AS estatus, t.entity AS vendor_id, BUILTIN.DF(t.entity) AS vendor_code, BUILTIN.DF(t.custbody_bb_project) AS proyecto, BUILTIN.DF(t.currency) AS moneda, t.exchangeRate AS tipo_cambio, t.total AS monto_total, t.memo AS nota FROM purchaseOrder t WHERE t.custbody_bb_project = ${projectId} AND t.status IN ('B','E','F') ORDER BY t.tranDate DESC`;\n\nreturn {\n  json: {\n    url: fullUrl,\n    authHeader,\n    body: { q: query },\n    offset\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3456,
+        2400
+      ],
+      "id": "b7957436-a5bf-4068-b3d2-c0b35ec23203",
+      "name": "Code: OAuth SuiteQL"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json;\nlet parsed;\ntry {\n  parsed = typeof raw.data === 'string' ? JSON.parse(raw.data) : raw;\n} catch (e) {\n  return { json: { error: 'PARSE_FAILED', message: e.message } };\n}\n\nconst items = parsed.items || [];\n\nconst oc_list = items.map(r => ({\n  internal_id: r.internal_id,\n  oc_number: r.oc_number,\n  fecha: r.fecha,\n  estatus: r.estatus,\n  vendor_id: r.vendor_id,\n  vendor_code: r.vendor_code,\n  moneda: r.moneda,\n  tipo_cambio: r.tipo_cambio ? parseFloat(r.tipo_cambio) : null,\n  monto_total: r.monto_total ? parseFloat(r.monto_total) : 0,\n  nota: r.nota\n}));\n\n// Extraer vendor_ids únicos para que el frontend los resuelva\nconst unique_vendors = [...new Set(items.map(r => r.vendor_id).filter(Boolean))];\n\nreturn {\n  json: {\n    oc_list,\n    unique_vendors,\n    hasMore: parsed.hasMore\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3904,
+        2400
+      ],
+      "id": "f999c5fd-eaa4-46d2-a3a9-b13bb3700d28",
+      "name": "Code — Transform POs"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $json.authHeader }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "transient"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": {}
+      },
+      "id": "e2b37323-88d5-4fce-8ee7-4c87cd3b7790",
+      "name": "Consultar NetSuite POs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3696,
+        2400
+      ]
+    },
+    {
+      "parameters": {
+        "path": "ocs-por-proyecto",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        3008,
+        2400
+      ],
+      "id": "1dfa835c-9e3e-4ba8-8341-c363d8fb17f3",
+      "name": "API POs NetSuite",
+      "webhookId": "592b0638-b024-4dfc-a390-f1d744c27acf"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        4144,
+        2400
+      ],
+      "id": "c5d0513d-410b-470e-ac7a-9b8e47af3c14",
+      "name": "POs Netsuite"
+    }
+  ],
+  "connections": {
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code: OAuth SuiteQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: OAuth SuiteQL": {
+      "main": [
+        [
+          {
+            "node": "Consultar NetSuite POs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code — Transform POs": {
+      "main": [
+        [
+          {
+            "node": "POs Netsuite",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar NetSuite POs": {
+      "main": [
+        [
+          {
+            "node": "Code — Transform POs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API POs NetSuite": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "API POs NetSuite": [
+      {
+        "headers": {
+          "host": "egenlight.app.n8n.cloud",
+          "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+          "accept": "*/*",
+          "accept-encoding": "gzip, br",
+          "accept-language": "es-ES,es;q=0.9",
+          "cdn-loop": "cloudflare; loops=1; subreqs=1",
+          "cf-connecting-ip": "2806:2f0:a060:fce1:2838:dd06:ab6c:553a",
+          "cf-ew-via": "15",
+          "cf-ipcountry": "MX",
+          "cf-ray": "9fe649aa4b4b6b38-DFW",
+          "cf-visitor": "{\"scheme\":\"https\"}",
+          "cf-worker": "n8n.cloud",
+          "if-none-match": "W/\"203b-xZDAJcuTbYRU58cp9sDFNoCiPko\"",
+          "origin": "http://localhost:5173",
+          "priority": "u=1, i",
+          "referer": "http://localhost:5173/",
+          "sec-ch-ua": "\"Chromium\";v=\"148\", \"Google Chrome\";v=\"148\", \"Not/A)Brand\";v=\"99\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Windows\"",
+          "sec-fetch-dest": "empty",
+          "sec-fetch-mode": "cors",
+          "sec-fetch-site": "cross-site",
+          "x-forwarded-for": "2806:2f0:a060:fce1:2838:dd06:ab6c:553a, 172.68.27.165",
+          "x-forwarded-host": "egenlight.app.n8n.cloud",
+          "x-forwarded-port": "443",
+          "x-forwarded-proto": "https",
+          "x-forwarded-server": "traefik-prod-users-gwc-105-59f487f4c8-984m7",
+          "x-is-trusted": "yes",
+          "x-real-ip": "2806:2f0:a060:fce1:2838:dd06:ab6c:553a"
+        },
+        "params": {},
+        "query": {
+          "projectId": "10746"
+        },
+        "body": {},
+        "webhookUrl": "https://egenlight.app.n8n.cloud/webhook/ocs-por-proyecto",
+        "executionMode": "production"
+      }
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d07ceca5e978fedf0de8319073f060d445fc5f9ac86873adfc6d77f9052a35c4"
+  }
+}

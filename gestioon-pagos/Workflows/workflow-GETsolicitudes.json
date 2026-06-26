@@ -1,0 +1,155 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734",
+          "mode": "list",
+          "cachedResultName": "MZ-FIN-08 - Matriz de solicitudes de pago",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Pagos Operaciones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14T2L8dZwXznYfP7j9HKhHauI3l5S5cNLnZy2Kyr3734/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1296,
+        2272
+      ],
+      "id": "75096d00-82a6-4a2b-b62a-67d5cdeaec88",
+      "name": "Hoja Sheets Pago Operaciones",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "af48hEP1PbQpWRo9",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dc19f067-5393-4dce-928f-10bc8675c372",
+              "name": "_sheet",
+              "value": "OPS",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1520,
+        2272
+      ],
+      "id": "a7a424d5-b4b6-4bee-afe3-c62d82866743",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1968,
+        2272
+      ],
+      "id": "f7b5d8a7-3531-45c2-8386-0d161d662366",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "path": "solicitudes",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        1072,
+        2272
+      ],
+      "id": "ece91657-2cd3-41bd-9da4-e1f6497a40cc",
+      "name": "Webhook - GET Solicitudes",
+      "webhookId": "9f6178b6-a1c8-4f55-a544-fe43de8ffd72"
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all();\nconst results = [];\n\nfor (const row of rows) {\n  const d = row.json;\n  const id = d[\"ID\"];\n  if (!id) continue;\n\n  let statusHistory = [];\n  try {\n    if (d[\"StatusHistory\"]) {\n      statusHistory = JSON.parse(d[\"StatusHistory\"]);\n    }\n  } catch {}\n\n  results.push({\n    json: {\n      id,\n      poNumber: d[\"OC\"] || \"\",\n      projectNumber: d[\"No. de Proyecto o Departamento para imputar\"] || \"\",\n      beneficiary: d[\"Beneficiario\"] || \"\",\n      concept: d[\"Concepto de pago\"] || \"\",\n      subtotal: parseFloat(d[\"Subtotal\"]) || 0,\n      iva: parseFloat(d[\"IVA\"]) || 0,\n      amount: parseFloat(d[\"Monto Solicitado\"]) || 0,\n      currency: d[\"Divisa\"] || \"MXN\",\n      department: d[\"Departamento solicitante\"] || \"\",\n      status: d[\"Estatus del Pago\"] || \"Draft\",\n      submittedBy: d[\"Persona Solicitante\"] || \"\",\n      date: d[\"Fecha de solicitud\"] || \"\",\n      statusHistory,\n      financeObservations: d[\"Observaciones de Finanzas\"] || undefined,\n      amountPaid: parseFloat(d[\"Monto Pagado\"]) || undefined,\n      exchangeRateUsed: parseFloat(d[\"T/C\"]) || undefined,\n      amountMXN: parseFloat(d[\"Monto en MXN\"]) || undefined,\n      bankName: d[\"Banco\"] || undefined,\n      operationRef: d[\"Operación\"] || undefined,\n      paymentMode: d[\"Modo pago\"] || undefined,\n      invoiceNumber: d[\"N° de factura\"] || undefined,\n      invoiceLink: d[\"Link Factura\"] || undefined,\n      expenseType: d[\"Tipo de gasto\"] || undefined,\n      operationType: d[\"Tipo de operación\"] || undefined,\n      ocStatus: d[\"Estatus OC\"] || undefined,\n      client: d[\"Cliente\"] || undefined,\n      serviceDelivery: d[\"Prestación del bien o servicio\"] || undefined,\n      proposal: d[\"Propuesta\"] || undefined,\n      paymentProof: d[\"Comprobante de pago\"] || undefined,\n      nsProjectId: d[\"nsProjectId\"] || undefined,\n      nsOcInternalId: d[\"nsOcInternalId\"] || undefined,\n      vendorId: d[\"vendorId\"] || undefined,\n      vendorRfc: d[\"vendorRfc\"] || undefined,\n      paymentType: d[\"paymentType\"] || undefined,\n      ocTotal: parseFloat(d[\"ocTotal\"]) || undefined,\n      exchangeRate: parseFloat(d[\"exchangeRate\"]) || undefined,\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1744,
+        2272
+      ],
+      "id": "68131e6c-0773-41e8-9e71-f15e62921345",
+      "name": "Traer filas"
+    }
+  ],
+  "connections": {
+    "Hoja Sheets Pago Operaciones": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Traer filas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook - GET Solicitudes": {
+      "main": [
+        [
+          {
+            "node": "Hoja Sheets Pago Operaciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Traer filas": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d07ceca5e978fedf0de8319073f060d445fc5f9ac86873adfc6d77f9052a35c4"
+  }
+}
